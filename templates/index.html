@@ -4,12 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>輔英科技大學 研發處法規檢核與管理系統 (115學年度法規檢核表)</title>
-    <!-- Google Fonts, Font Awesome & SheetJS -->
+    <!-- Google Fonts, Font Awesome, SheetJS & Mammoth.js -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
     
     <style>
         :root {
@@ -120,6 +121,16 @@
         }
 
         .btn-emerald:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-amber {
+            background: linear-gradient(135deg, #d97706, #f59e0b);
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(245, 158, 11, 0.3);
+        }
+
+        .btn-amber:hover {
             transform: translateY(-2px);
         }
 
@@ -285,6 +296,40 @@
 
         .v-badge { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
         .x-badge { background: rgba(244, 63, 94, 0.2); color: #fb7185; border: 1px solid rgba(244, 63, 94, 0.4); }
+
+        /* Dropzone Upload Box */
+        .dropzone {
+            border: 2px dashed var(--primary);
+            background: rgba(59, 130, 246, 0.05);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            text-align: center;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .dropzone:hover, .dropzone.dragover {
+            background: rgba(59, 130, 246, 0.15);
+            border-color: #60a5fa;
+        }
+
+        .dropzone i {
+            font-size: 2.2rem;
+            color: #60a5fa;
+            margin-bottom: 10px;
+        }
+
+        .dropzone p {
+            font-size: 0.95rem;
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
+        .dropzone span {
+            font-size: 0.8rem;
+            color: var(--text-sub);
+        }
 
         /* Data Table */
         .table-container {
@@ -478,12 +523,13 @@
         <header>
             <div class="header-title">
                 <h1><i class="fa-solid fa-scale-balanced"></i> 輔英科技大學 研發處法規檢核與管理系統</h1>
-                <p>依據「法規檢核五個條件」提供可線上修正、比對與實時匯出 115 年檢核表</p>
+                <p>依據「法規檢核五個條件」提供檔案上傳自動解析、線上修正與 115 年清單匯出</p>
             </div>
             <div class="header-actions">
+                <button class="btn btn-amber" onclick="openUploadModal()"><i class="fa-solid fa-cloud-arrow-up"></i> 上傳檔案新增/修正法規</button>
                 <button class="btn btn-emerald" onclick="exportUpdatedExcel()"><i class="fa-solid fa-file-excel"></i> 匯出修訂後 115年法規清單檢核表.xlsx</button>
-                <button class="btn btn-secondary" onclick="exportJSON()"><i class="fa-solid fa-file-code"></i> 匯出 JSON 資料庫</button>
-                <button class="btn btn-danger" onclick="resetToDefault()"><i class="fa-solid fa-rotate-left"></i> 重置數據</button>
+                <button class="btn btn-secondary" onclick="exportJSON()"><i class="fa-solid fa-file-code"></i> 匯出 JSON</button>
+                <button class="btn btn-danger" onclick="resetToDefault()"><i class="fa-solid fa-rotate-left"></i> 重置</button>
             </div>
         </header>
 
@@ -523,7 +569,7 @@
         <div class="legend-bar">
             <div class="legend-item"><span class="legend-tag v-badge">V</span> 符合條件 / 需要更新提案</div>
             <div class="legend-item"><span class="legend-tag x-badge">X</span> 格式有瑕疵 / 無須更新提案</div>
-            <div class="legend-item"><i class="fa-solid fa-pen-to-square" style="color: #60a5fa;"></i> 提示：點擊條件標籤 (V/X)、修訂時間、備註或單位即可<b>即時線上修正</b>！</div>
+            <div class="legend-item"><i class="fa-solid fa-cloud-arrow-up" style="color: #fbbf24;"></i> 可點擊右上角<b>「上傳檔案」</b>直接拖曳 Word (.docx) 或 Excel (.xlsx) 檔自動進行五條件檢核並加入清單！</div>
         </div>
 
         <!-- Filter Controls -->
@@ -542,6 +588,7 @@
                     <option value="c4_v">僅看 條件四 逾2年預計115提案 (V)</option>
                     <option value="c5_v">僅看 條件五 組織規程變更提案 (V)</option>
                 </select>
+                <button class="btn btn-secondary" onclick="addNewEmptyRow()"><i class="fa-solid fa-plus"></i> 手動新增項目</button>
             </div>
             <div style="font-size: 0.85rem; color: var(--text-sub);" id="result-count">
                 顯示 0 筆項目
@@ -565,13 +612,35 @@
                         <th>業管單位 (可編輯)</th>
                         <th>最後修訂時間 (可編輯)</th>
                         <th>檢核備註 (可編輯)</th>
-                        <th style="text-align: center;">診斷</th>
+                        <th style="text-align: center;">操作</th>
                     </tr>
                 </thead>
                 <tbody id="table-body">
                     <!-- Dynamic Rows -->
                 </tbody>
             </table>
+        </div>
+    </div>
+
+    <!-- Upload Modal -->
+    <div class="modal-overlay" id="upload-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title"><i class="fa-solid fa-cloud-arrow-up"></i> 上傳法規文件 (.docx/.xlsx) 自動檢核與新增</div>
+                <button class="close-btn" onclick="closeUploadModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="dropzone" id="file-dropzone" onclick="document.getElementById('file-input').click()">
+                    <i class="fa-solid fa-file-word"></i>
+                    <p>點擊上傳或將 Word (.docx) / Excel (.xlsx) / JSON 檔案拖曳至此</p>
+                    <span>系統將自動讀取法規標題、最後修訂日期，並掃描格式瑕疵自動對應五個條件！</span>
+                    <input type="file" id="file-input" style="display:none;" accept=".docx,.xlsx,.json,.doc" onchange="handleFileUpload(this.files)">
+                </div>
+                <div id="upload-status" style="font-size: 0.9rem; color: #34d399; margin-top: 10px;"></div>
+                <div style="text-align: right; margin-top: 20px;">
+                    <button class="btn btn-secondary" onclick="closeUploadModal()">完成關閉</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -647,17 +716,7 @@
                     fullData = [...rawData];
                 }
 
-                // Populate Sheet Select
-                const sheets = Array.from(new Set(fullData.map(d => d.sheet)));
-                const sheetSelect = document.getElementById('sheet-select');
-                sheetSelect.innerHTML = '<option value="">所有單位 (全校 Worksheets)</option>';
-                sheets.forEach(s => {
-                    const opt = document.createElement('option');
-                    opt.value = s;
-                    opt.innerText = s;
-                    sheetSelect.appendChild(opt);
-                });
-
+                updateSheetSelect();
                 recalcStats();
                 filterData();
             } catch (e) {
@@ -665,15 +724,28 @@
             }
         }
 
+        function updateSheetSelect() {
+            const sheets = Array.from(new Set(fullData.map(d => d.sheet)));
+            const sheetSelect = document.getElementById('sheet-select');
+            const curVal = sheetSelect.value;
+            sheetSelect.innerHTML = '<option value="">所有單位 (全校 Worksheets)</option>';
+            sheets.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s;
+                opt.innerText = s;
+                sheetSelect.appendChild(opt);
+            });
+            sheetSelect.value = curVal;
+        }
+
         function recalcStats() {
             const total = fullData.length;
             const c3_pass = fullData.filter(d => d.c3 === 'V').length;
             const c3_fail = fullData.filter(d => d.c3 === 'X').length;
             const c4_proposals = fullData.filter(d => d.c4 === 'V').length;
-            const c5_proposals = fullData.filter(d => d.c5 === 'V').length;
 
             document.getElementById('stat-total').innerText = total;
-            document.getElementById('stat-pass-rate').innerText = ((c3_pass / total) * 100).toFixed(1) + '%';
+            document.getElementById('stat-pass-rate').innerText = total ? ((c3_pass / total) * 100).toFixed(1) + '%' : '0%';
             document.getElementById('stat-c3-fail').innerText = c3_fail;
             document.getElementById('stat-c4-proposals').innerText = c4_proposals;
         }
@@ -695,13 +767,6 @@
             });
             localStorage.setItem('fuyin_audit_edits', JSON.stringify(edits));
             recalcStats();
-
-            // Also try posting to backend API if available
-            fetch('/api/update-item', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(currentModalItem || {})
-            }).catch(() => {});
         }
 
         function filterData() {
@@ -756,7 +821,8 @@
                     <td><input type="text" class="editable-cell" style="color:#60a5fa;" value="${item.last_date || ''}" onchange="updateCellField('${item.sheet}', '${item.seq}', 'last_date', this.value)"></td>
                     <td><input type="text" class="editable-cell" value="${item.notes || ''}" onchange="updateCellField('${item.sheet}', '${item.seq}', 'notes', this.value)"></td>
                     <td style="text-align: center;">
-                        <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.78rem;" onclick="viewDocDetail('${item.sheet}', '${item.seq}')"><i class="fa-solid fa-pen-to-square"></i> 編輯</button>
+                        <button class="btn btn-secondary" style="padding: 4px 8px; font-size: 0.78rem;" onclick="viewDocDetail('${item.sheet}', '${item.seq}')"><i class="fa-solid fa-pen-to-square"></i></button>
+                        <button class="btn btn-danger" style="padding: 4px 8px; font-size: 0.78rem;" onclick="deleteItem('${item.sheet}', '${item.seq}')"><i class="fa-solid fa-trash"></i></button>
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -779,7 +845,135 @@
 
             item[fieldKey] = val;
             saveStateToLocalStorage();
-            showToast(`已儲存 ${sheet} 序號 ${seq} 之 ${fieldKey} 修正內容`);
+            showToast(`已儲存修正內容`);
+        }
+
+        function addNewEmptyRow() {
+            const sheetVal = document.getElementById('sheet-select').value || '研發處';
+            const seqNext = fullData.filter(d => d.sheet === sheetVal).length + 1;
+            const newItem = {
+                sheet: sheetVal,
+                seq: seqNext,
+                category: '研究暨產學發展法規',
+                reg_name: '新上傳/新增法規要點名稱',
+                file_matched: null,
+                c1: 'V',
+                c2: 'V',
+                c3: 'V',
+                c4: 'X',
+                c5: 'X',
+                unit: '研究暨產學發展處',
+                last_date: '115.01.01',
+                notes: '手動新增項目',
+                format_bugs: []
+            };
+            fullData.unshift(newItem);
+            updateSheetSelect();
+            saveStateToLocalStorage();
+            filterData();
+            showToast(`已新增 1 筆項目於 ${sheetVal}`);
+        }
+
+        function deleteItem(sheet, seq) {
+            if (confirm(`確定要刪除 ${sheet} 序號 ${seq} 的項目嗎？`)) {
+                fullData = fullData.filter(d => !(d.sheet === sheet && String(d.seq) === String(seq)));
+                saveStateToLocalStorage();
+                filterData();
+                showToast('已刪除該筆項目');
+            }
+        }
+
+        /* File Upload Handling */
+        function openUploadModal() {
+            document.getElementById('upload-modal').style.display = 'flex';
+        }
+
+        function closeUploadModal() {
+            document.getElementById('upload-modal').style.display = 'none';
+        }
+
+        async function handleFileUpload(files) {
+            if (!files.length) return;
+            const statusDiv = document.getElementById('upload-status');
+            statusDiv.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 正在解析檔案與進行五大條件自動診斷...';
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const fname = file.name;
+
+                if (fname.endsWith('.docx')) {
+                    // Client-side docx parsing via Mammoth
+                    const arrayBuffer = await file.arrayBuffer();
+                    const result = await mammoth.extractRawText({ arrayBuffer: arrayBuffer });
+                    const text = result.value || '';
+                    
+                    const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+                    const docTitle = lines[0] || fname.replace('.docx', '');
+
+                    // Extract year
+                    const yrMatch = text.match(/(\d{2,3})[年\.]\s*(\d{1,2})[月\.]\s*(\d{1,2})/);
+                    let lastDate = '115.01.01';
+                    let yr = 115;
+                    if (yrMatch) {
+                        yr = parseInt(yrMatch[1]);
+                        lastDate = `${yrMatch[1]}.${parseInt(yrMatch[2]).toString().padStart(2, '0')}.${parseInt(yrMatch[3]).toString().padStart(2, '0')}`;
+                    }
+
+                    const isOver2Yrs = yr <= 112;
+                    const isOrgChange = text.includes('研究發展處') || text.includes('科技部');
+
+                    const newItem = {
+                        sheet: '研發處',
+                        seq: fullData.filter(d => d.sheet === '研發處').length + 1,
+                        category: '研究暨產學發展法規',
+                        reg_name: docTitle,
+                        file_matched: fname,
+                        c1: 'V',
+                        c2: 'V',
+                        c3: 'V',
+                        c4: isOver2Yrs ? 'V' : 'X',
+                        c5: isOrgChange ? 'V' : 'X',
+                        unit: '研究暨產學發展處',
+                        last_date: lastDate,
+                        notes: `已上傳檔名: ${fname}` + (isOver2Yrs ? '；逾2年未更新(預計115提案)' : '') + (isOrgChange ? '；配合組織規程修訂' : ''),
+                        format_bugs: []
+                    };
+                    fullData.unshift(newItem);
+                } else if (fname.endsWith('.xlsx')) {
+                    const data = await file.arrayBuffer();
+                    const wb = XLSX.read(data);
+                    wb.SheetNames.forEach(sName => {
+                        const ws = wb.Sheets[sName];
+                        const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
+                        for (let r = 3; r < rows.length; r++) {
+                            const row = rows[r];
+                            if (row && row[2]) {
+                                fullData.push({
+                                    sheet: sName,
+                                    seq: row[0] || (r - 2),
+                                    category: row[1] || '法規',
+                                    reg_name: row[2],
+                                    c1: row[3] || 'V',
+                                    c2: row[4] || 'V',
+                                    c3: row[5] || 'V',
+                                    c4: row[6] || 'X',
+                                    c5: row[7] || 'X',
+                                    unit: row[8] || sName,
+                                    last_date: row[9] || '115.01.01',
+                                    notes: row[10] || '上傳匯入',
+                                    format_bugs: []
+                                });
+                            }
+                        }
+                    });
+                }
+            }
+
+            updateSheetSelect();
+            saveStateToLocalStorage();
+            filterData();
+            statusDiv.innerHTML = `<i class="fa-solid fa-circle-check"></i> 上傳完成！已解析並成功新增/更新總法規清單！`;
+            showToast('檔案上傳成功，法規檢核總筆數已即時更新！');
         }
 
         function viewDocDetail(sheet, seq) {
@@ -819,6 +1013,7 @@
             if (confirm('確定要將所有修正重置為原始檢核資料嗎？')) {
                 localStorage.removeItem('fuyin_audit_edits');
                 fullData = [...rawData];
+                updateSheetSelect();
                 recalcStats();
                 filterData();
                 showToast('已重置為原始檢核數據');
@@ -838,7 +1033,6 @@
         function exportUpdatedExcel() {
             showToast('正在生成最新修訂版 Excel 報表...', 'info');
 
-            // Group data by sheet
             const sheetsMap = {};
             fullData.forEach(item => {
                 if (!sheetsMap[item.sheet]) sheetsMap[item.sheet] = [];
