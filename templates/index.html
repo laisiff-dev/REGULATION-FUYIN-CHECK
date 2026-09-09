@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>輔英科技大學 研發處法規檢核與管理系統 (115學年度法規檢核表)</title>
+    <!-- Google Fonts & Font Awesome Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-base: #0f172a;
+            --bg-card: rgba(30, 41, 59, 0.7);
+            --bg-card-hover: rgba(30, 41, 59, 0.9);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --text-main: #f8fafc;
+            --text-sub: #94a3b8;
+            --primary: #3b82f6;
+            --primary-glow: rgba(59, 130, 246, 0.4);
+            --accent-emerald: #10b981;
+            --accent-rose: #f43f5e;
+            --accent-amber: #f59e0b;
+            --accent-indigo: #6366f1;
+            --radius-lg: 16px;
+            --radius-md: 10px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Noto Sans TC', 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(99, 102, 241, 0.15) 0px, transparent 50%);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 24px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 28px;
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            margin-bottom: 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .header-title h1 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-title p {
+            color: var(--text-sub);
+            font-size: 0.9rem;
+            margin-top: 4px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 10px 18px;
+            border-radius: var(--radius-md);
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--accent-indigo));
+            color: #fff;
+            box-shadow: 0 4px 14px var(--primary-glow);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px var(--primary-glow);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            transition: transform 0.2s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            background: var(--bg-card-hover);
+        }
+
+        .stat-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+        }
+
+        .stat-blue { background: rgba(59, 130, 246, 0.15); color: #60a5fa; }
+        .stat-emerald { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+        .stat-rose { background: rgba(244, 63, 94, 0.15); color: #fb7185; }
+        .stat-amber { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+
+        .stat-info h3 {
+            font-size: 1.6rem;
+            font-weight: 700;
+        }
+
+        .stat-info p {
+            color: var(--text-sub);
+            font-size: 0.85rem;
+        }
+
+        /* Filter Controls */
+        .controls-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            margin-bottom: 24px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            position: relative;
+            min-width: 280px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px 14px 10px 40px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            color: var(--text-main);
+            font-size: 0.9rem;
+            outline: none;
+        }
+
+        .search-box input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-glow);
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-sub);
+        }
+
+        select {
+            padding: 10px 14px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            color: var(--text-main);
+            font-size: 0.9rem;
+            outline: none;
+            cursor: pointer;
+        }
+
+        /* Conditions Legend Bar */
+        .legend-bar {
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 12px 18px;
+            margin-bottom: 16px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            font-size: 0.82rem;
+            color: var(--text-sub);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .legend-tag {
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 0.75rem;
+        }
+
+        .v-badge { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
+        .x-badge { background: rgba(244, 63, 94, 0.2); color: #fb7185; border: 1px solid rgba(244, 63, 94, 0.4); }
+
+        /* Data Table */
+        .table-container {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.88rem;
+        }
+
+        th {
+            background: rgba(15, 23, 42, 0.8);
+            color: #94a3b8;
+            font-weight: 600;
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border-color);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            vertical-align: middle;
+        }
+
+        tr:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .cond-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: none;
+            transition: transform 0.15s ease;
+        }
+
+        .cond-btn:hover {
+            transform: scale(1.15);
+        }
+
+        .reg-title {
+            font-weight: 600;
+            color: #f1f5f9;
+            line-height: 1.4;
+        }
+
+        .note-tag {
+            font-size: 0.78rem;
+            color: #cbd5e1;
+            background: rgba(255, 255, 255, 0.06);
+            padding: 4px 8px;
+            border-radius: 4px;
+            display: inline-block;
+            max-width: 260px;
+            word-break: break-word;
+        }
+
+        .note-bug {
+            color: #fca5a5;
+            background: rgba(239, 68, 68, 0.12);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal {
+            background: #1e293b;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            width: 90%;
+            max-width: 800px;
+            max-height: 85vh;
+            overflow-y: auto;
+            padding: 28px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 16px;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #60a5fa;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: var(--text-sub);
+            font-size: 1.4rem;
+            cursor: pointer;
+        }
+
+        .close-btn:hover { color: #fff; }
+
+        .modal-body {
+            line-height: 1.6;
+            font-size: 0.9rem;
+        }
+
+        .detail-row {
+            margin-bottom: 16px;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: var(--text-sub);
+            margin-bottom: 6px;
+        }
+
+        .detail-content {
+            background: rgba(15, 23, 42, 0.6);
+            padding: 12px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: rgba(16, 185, 129, 0.9);
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: var(--radius-md);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            display: none;
+            align-items: center;
+            gap: 10px;
+            z-index: 10000;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div class="header-title">
+                <h1><i class="fa-solid fa-scale-balanced"></i> 輔英科技大學 研發處法規檢核與管理系統</h1>
+                <p>依據「法規檢核五個條件」自動診斷與 115 學年度法規清單檢核表匯出</p>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-secondary" onclick="triggerReAudit()"><i class="fa-solid fa-rotate-right"></i> 一鍵全校重新自動檢核</button>
+                <a href="/api/download-excel" class="btn btn-primary"><i class="fa-solid fa-file-excel"></i> 匯出 115年法規清單檢核表.xlsx</a>
+            </div>
+        </header>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon stat-blue"><i class="fa-solid fa-folder-open"></i></div>
+                <div class="stat-info">
+                    <h3 id="stat-total">0</h3>
+                    <p>總檢核法規項目</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon stat-emerald"><i class="fa-solid fa-check-circle"></i></div>
+                <div class="stat-info">
+                    <h3 id="stat-pass-rate">0%</h3>
+                    <p>條件三 格式無瑕疵率</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon stat-rose"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                <div class="stat-info">
+                    <h3 id="stat-c3-fail">0</h3>
+                    <p>條件三 格式含底線/刪除線/雜色</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon stat-amber"><i class="fa-solid fa-calendar-check"></i></div>
+                <div class="stat-info">
+                    <h3 id="stat-c4-proposals">0</h3>
+                    <p>條件四 逾2年未更新(預計115提案)</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Legend Bar -->
+        <div class="legend-bar">
+            <div class="legend-item"><span class="legend-tag v-badge">V</span> 符合條件 / 需要更新提案</div>
+            <div class="legend-item"><span class="legend-tag x-badge">X</span> 格式有瑕疵 / 無須更新提案</div>
+            <div class="legend-item"><b>條件一</b>: 是否最新版本</div>
+            <div class="legend-item"><b>條件二</b>: 名稱正確</div>
+            <div class="legend-item"><b>條件三</b>: 格式完整(無刪除線/紅字/底線)</div>
+            <div class="legend-item"><b>條件四</b>: 逾2年未更新(預計115提案)</div>
+            <div class="legend-item"><b>條件五</b>: 因應組織規程修訂(預計115提案)</div>
+        </div>
+
+        <!-- Filter Controls -->
+        <div class="controls-card">
+            <div class="filter-group">
+                <div class="search-box">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="search-input" placeholder="搜尋法規名稱、類別或備註..." oninput="filterData()">
+                </div>
+                <select id="sheet-select" onchange="filterData()">
+                    <option value="">所有單位 (全校 Worksheets)</option>
+                </select>
+                <select id="cond-filter" onchange="filterData()">
+                    <option value="">所有條件狀態</option>
+                    <option value="c3_x">僅看 條件三 格式有瑕疵 (X)</option>
+                    <option value="c4_v">僅看 條件四 逾2年預計115提案 (V)</option>
+                    <option value="c5_v">僅看 條件五 組織規程變更提案 (V)</option>
+                </select>
+            </div>
+            <div style="font-size: 0.85rem; color: var(--text-sub);" id="result-count">
+                顯示 0 筆項目
+            </div>
+        </div>
+
+        <!-- Data Table -->
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 50px;">序號</th>
+                        <th>單位</th>
+                        <th>類別</th>
+                        <th>法規名稱</th>
+                        <th style="text-align: center;">條件一</th>
+                        <th style="text-align: center;">條件二</th>
+                        <th style="text-align: center;">條件三</th>
+                        <th style="text-align: center;">條件四</th>
+                        <th style="text-align: center;">條件五</th>
+                        <th>業管單位</th>
+                        <th>最後修訂時間</th>
+                        <th>檢核備註</th>
+                        <th style="text-align: center;">操作</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body">
+                    <!-- Dynamic Rows -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal for Document Detail & Audit Diagnostic -->
+    <div class="modal-overlay" id="detail-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title" id="modal-doc-title">法規檢核詳細報告</div>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="detail-row">
+                    <div class="detail-label"><i class="fa-solid fa-file-word"></i> 對應文件檔名：</div>
+                    <div id="modal-filename" style="font-weight: 600; color: #a78bfa;"></div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label"><i class="fa-solid fa-bug"></i> 條件三 格式瑕疵診斷：</div>
+                    <div id="modal-format-bugs" class="note-tag note-bug">無</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label"><i class="fa-solid fa-clock-rotate-left"></i> 修訂歷史與會議摘錄：</div>
+                    <div id="modal-rev-notes" class="detail-content">解析中...</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label"><i class="fa-solid fa-align-left"></i> 內文前段預覽：</div>
+                    <div id="modal-full-text" class="detail-content" style="max-height: 200px;"></div>
+                </div>
+                <div style="text-align: right; margin-top: 20px;">
+                    <button class="btn btn-secondary" onclick="closeModal()">關閉</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast"><i class="fa-solid fa-circle-check"></i> <span id="toast-msg">更新成功</span></div>
+
+    <script>
+        let fullData = [];
+
+        async function fetchAuditData() {
+            try {
+                const res = await fetch('/api/audit-results');
+                const result = await res.json();
+                
+                fullData = result.data;
+
+                // Update Stats
+                document.getElementById('stat-total').innerText = result.stats.total;
+                document.getElementById('stat-pass-rate').innerText = result.stats.c3_pass_rate + '%';
+                document.getElementById('stat-c3-fail').innerText = result.stats.c3_fail;
+                document.getElementById('stat-c4-proposals').innerText = result.stats.c4_proposals;
+
+                // Populate Sheet Select
+                const sheetSelect = document.getElementById('sheet-select');
+                sheetSelect.innerHTML = '<option value="">所有單位 (全校 Worksheets)</option>';
+                result.sheets.forEach(s => {
+                    const opt = document.createElement('option');
+                    opt.value = s;
+                    opt.innerText = s;
+                    sheetSelect.appendChild(opt);
+                });
+
+                filterData();
+            } catch (e) {
+                console.error('Fetch error:', e);
+            }
+        }
+
+        function filterData() {
+            const searchTxt = document.getElementById('search-input').value.toLowerCase();
+            const sheetVal = document.getElementById('sheet-select').value;
+            const condVal = document.getElementById('cond-filter').value;
+
+            const filtered = fullData.filter(item => {
+                const matchSearch = !searchTxt || 
+                    (item.reg_name && item.reg_name.toLowerCase().includes(searchTxt)) ||
+                    (item.category && item.category.toLowerCase().includes(searchTxt)) ||
+                    (item.notes && item.notes.toLowerCase().includes(searchTxt));
+
+                const matchSheet = !sheetVal || item.sheet === sheetVal;
+
+                let matchCond = true;
+                if (condVal === 'c3_x') matchCond = item.c3 === 'X';
+                if (condVal === 'c4_v') matchCond = item.c4 === 'V';
+                if (condVal === 'c5_v') matchCond = item.c5 === 'V';
+
+                return matchSearch && matchSheet && matchCond;
+            });
+
+            renderTable(filtered);
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = '';
+            document.getElementById('result-count').innerText = `顯示 ${data.length} 筆項目`;
+
+            data.forEach(item => {
+                const tr = document.createElement('tr');
+                
+                const c3_class = item.c3 === 'V' ? 'v-badge' : 'x-badge';
+                const c4_class = item.c4 === 'V' ? 'v-badge' : 'x-badge';
+                const c5_class = item.c5 === 'V' ? 'v-badge' : 'x-badge';
+
+                const isBugNote = item.notes && item.notes.includes('瑕疵');
+
+                tr.innerHTML = `
+                    <td>${item.seq || ''}</td>
+                    <td style="color: #94a3b8; font-size: 0.82rem;">${item.sheet}</td>
+                    <td style="color: #cbd5e1;">${item.category || ''}</td>
+                    <td><div class="reg-title">${item.reg_name}</div></td>
+                    <td style="text-align: center;"><button class="cond-btn v-badge" onclick="toggleCond('${item.sheet}', '${item.seq}', 'c1')">${item.c1}</button></td>
+                    <td style="text-align: center;"><button class="cond-btn v-badge" onclick="toggleCond('${item.sheet}', '${item.seq}', 'c2')">${item.c2}</button></td>
+                    <td style="text-align: center;"><button class="cond-btn ${c3_class}" onclick="toggleCond('${item.sheet}', '${item.seq}', 'c3')">${item.c3}</button></td>
+                    <td style="text-align: center;"><button class="cond-btn ${c4_class}" onclick="toggleCond('${item.sheet}', '${item.seq}', 'c4')">${item.c4}</button></td>
+                    <td style="text-align: center;"><button class="cond-btn ${c5_class}" onclick="toggleCond('${item.sheet}', '${item.seq}', 'c5')">${item.c5}</button></td>
+                    <td style="color: #94a3b8; font-size: 0.82rem;">${item.unit || ''}</td>
+                    <td style="color: #60a5fa; font-weight: 500;">${item.last_date || ''}</td>
+                    <td><span class="note-tag ${isBugNote ? 'note-bug' : ''}">${item.notes || ''}</span></td>
+                    <td style="text-align: center;">
+                        ${item.file_matched ? `<button class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.78rem;" onclick="viewDocDetail('${item.file_matched}')"><i class="fa-solid fa-magnifying-glass-chart"></i> 診斷</button>` : '<span style="color:#64748b; font-size:0.75rem;">無對應檔</span>'}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        async function toggleCond(sheet, seq, condKey) {
+            const item = fullData.find(d => d.sheet === sheet && String(d.seq) === String(seq));
+            if (!item) return;
+
+            // Toggle V <-> X
+            item[condKey] = item[condKey] === 'V' ? 'X' : 'V';
+
+            try {
+                const res = await fetch('/api/update-item', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(item)
+                });
+                if (res.ok) {
+                    showToast(`已成功更新 ${sheet} 序號 ${seq} 之 ${condKey.toUpperCase()} 為 ${item[condKey]}`);
+                    filterData();
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        async function viewDocDetail(filename) {
+            try {
+                const res = await fetch(`/api/doc-detail?filename=${encodeURIComponent(filename)}`);
+                const data = await res.json();
+                if (data.status === 'success') {
+                    const info = data.info;
+                    document.getElementById('modal-doc-title').innerText = info.doc_title || filename;
+                    document.getElementById('modal-filename').innerText = filename;
+                    
+                    let bugText = [];
+                    if (info.has_underline) bugText.push('下劃線/底線 (Underline)');
+                    if (info.has_strike) bugText.push('刪除線 (Strikethrough)');
+                    if (info.has_color) bugText.push('各式顏色文字 (Font RGB Colors)');
+                    if (info.has_tracked_changes) bugText.push('追蹤修訂標籤 (Tracked Changes)');
+
+                    document.getElementById('modal-format-bugs').innerText = bugText.length ? bugText.join('、') : '無格式瑕疵 (符合條件三)';
+                    document.getElementById('modal-rev-notes').innerText = info.rev_notes.length ? info.rev_notes.join('\n') : '無會議標註錄入';
+                    document.getElementById('modal-full-text').innerText = info.full_text_sample || '內文為空';
+
+                    document.getElementById('detail-modal').style.display = 'flex';
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('detail-modal').style.display = 'none';
+        }
+
+        async function triggerReAudit() {
+            showToast('開始執行全校法規重新自動檢核...', 'info');
+            try {
+                const res = await fetch('/api/re-audit', { method: 'POST' });
+                if (res.ok) {
+                    showToast('重新檢核完成！數據已即時同步。');
+                    fetchAuditData();
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = msg;
+            toast.style.display = 'flex';
+            setTimeout(() => { toast.style.display = 'none'; }, 3000);
+        }
+
+        // Initialize on load
+        fetchAuditData();
+    </script>
+</body>
+</html>
