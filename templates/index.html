@@ -4,11 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>輔英科技大學 研發處法規檢核與管理系統 (115學年度法規檢核表)</title>
-    <!-- Google Fonts & Font Awesome Icons -->
+    <!-- Google Fonts, Font Awesome & SheetJS -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
     <style>
         :root {
@@ -46,7 +47,7 @@
         }
 
         .container {
-            max-width: 1600px;
+            max-width: 1650px;
             margin: 0 auto;
         }
 
@@ -83,13 +84,14 @@
 
         .header-actions {
             display: flex;
-            gap: 12px;
+            gap: 10px;
+            flex-wrap: wrap;
         }
 
         .btn {
-            padding: 10px 18px;
+            padding: 10px 16px;
             border-radius: var(--radius-md);
-            font-size: 0.9rem;
+            font-size: 0.88rem;
             font-weight: 600;
             cursor: pointer;
             border: none;
@@ -111,6 +113,16 @@
             box-shadow: 0 6px 20px var(--primary-glow);
         }
 
+        .btn-emerald {
+            background: linear-gradient(135deg, #059669, #10b981);
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-emerald:hover {
+            transform: translateY(-2px);
+        }
+
         .btn-secondary {
             background: rgba(255, 255, 255, 0.08);
             color: var(--text-main);
@@ -119,6 +131,16 @@
 
         .btn-secondary:hover {
             background: rgba(255, 255, 255, 0.15);
+        }
+
+        .btn-danger {
+            background: rgba(244, 63, 94, 0.15);
+            color: #fb7185;
+            border: 1px solid rgba(244, 63, 94, 0.3);
+        }
+
+        .btn-danger:hover {
+            background: rgba(244, 63, 94, 0.3);
         }
 
         /* Stats Grid */
@@ -245,6 +267,7 @@
             gap: 20px;
             font-size: 0.82rem;
             color: var(--text-sub);
+            align-items: center;
         }
 
         .legend-item {
@@ -314,13 +337,30 @@
         }
 
         .cond-btn:hover {
-            transform: scale(1.15);
+            transform: scale(1.18);
         }
 
         .reg-title {
             font-weight: 600;
             color: #f1f5f9;
             line-height: 1.4;
+        }
+
+        .editable-cell {
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px dashed rgba(255, 255, 255, 0.15);
+            padding: 4px 8px;
+            border-radius: 6px;
+            color: #f1f5f9;
+            font-size: 0.85rem;
+            outline: none;
+            width: 100%;
+            transition: border-color 0.2s ease;
+        }
+
+        .editable-cell:focus {
+            border-color: var(--primary);
+            background: rgba(15, 23, 42, 0.8);
         }
 
         .note-tag {
@@ -410,7 +450,7 @@
             border-radius: var(--radius-md);
             border: 1px solid var(--border-color);
             white-space: pre-wrap;
-            max-height: 300px;
+            max-height: 250px;
             overflow-y: auto;
         }
 
@@ -419,7 +459,7 @@
             position: fixed;
             bottom: 24px;
             right: 24px;
-            background: rgba(16, 185, 129, 0.9);
+            background: rgba(16, 185, 129, 0.95);
             color: #fff;
             padding: 12px 20px;
             border-radius: var(--radius-md);
@@ -438,11 +478,12 @@
         <header>
             <div class="header-title">
                 <h1><i class="fa-solid fa-scale-balanced"></i> 輔英科技大學 研發處法規檢核與管理系統</h1>
-                <p>依據「法規檢核五個條件」自動診斷與 115 學年度法規清單檢核表匯出</p>
+                <p>依據「法規檢核五個條件」提供可線上修正、比對與實時匯出 115 年檢核表</p>
             </div>
             <div class="header-actions">
-                <button class="btn btn-secondary" onclick="triggerReAudit()"><i class="fa-solid fa-rotate-right"></i> 一鍵全校重新自動檢核</button>
-                <a href="/api/download-excel" class="btn btn-primary"><i class="fa-solid fa-file-excel"></i> 匯出 115年法規清單檢核表.xlsx</a>
+                <button class="btn btn-emerald" onclick="exportUpdatedExcel()"><i class="fa-solid fa-file-excel"></i> 匯出修訂後 115年法規清單檢核表.xlsx</button>
+                <button class="btn btn-secondary" onclick="exportJSON()"><i class="fa-solid fa-file-code"></i> 匯出 JSON 資料庫</button>
+                <button class="btn btn-danger" onclick="resetToDefault()"><i class="fa-solid fa-rotate-left"></i> 重置數據</button>
             </div>
         </header>
 
@@ -451,28 +492,28 @@
             <div class="stat-card">
                 <div class="stat-icon stat-blue"><i class="fa-solid fa-folder-open"></i></div>
                 <div class="stat-info">
-                    <h3 id="stat-total">0</h3>
+                    <h3 id="stat-total">361</h3>
                     <p>總檢核法規項目</p>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon stat-emerald"><i class="fa-solid fa-check-circle"></i></div>
                 <div class="stat-info">
-                    <h3 id="stat-pass-rate">0%</h3>
+                    <h3 id="stat-pass-rate">92.8%</h3>
                     <p>條件三 格式無瑕疵率</p>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon stat-rose"><i class="fa-solid fa-triangle-exclamation"></i></div>
                 <div class="stat-info">
-                    <h3 id="stat-c3-fail">0</h3>
+                    <h3 id="stat-c3-fail">26</h3>
                     <p>條件三 格式含底線/刪除線/雜色</p>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon stat-amber"><i class="fa-solid fa-calendar-check"></i></div>
                 <div class="stat-info">
-                    <h3 id="stat-c4-proposals">0</h3>
+                    <h3 id="stat-c4-proposals">22</h3>
                     <p>條件四 逾2年未更新(預計115提案)</p>
                 </div>
             </div>
@@ -482,11 +523,7 @@
         <div class="legend-bar">
             <div class="legend-item"><span class="legend-tag v-badge">V</span> 符合條件 / 需要更新提案</div>
             <div class="legend-item"><span class="legend-tag x-badge">X</span> 格式有瑕疵 / 無須更新提案</div>
-            <div class="legend-item"><b>條件一</b>: 是否最新版本</div>
-            <div class="legend-item"><b>條件二</b>: 名稱正確</div>
-            <div class="legend-item"><b>條件三</b>: 格式完整(無刪除線/紅字/底線)</div>
-            <div class="legend-item"><b>條件四</b>: 逾2年未更新(預計115提案)</div>
-            <div class="legend-item"><b>條件五</b>: 因應組織規程修訂(預計115提案)</div>
+            <div class="legend-item"><i class="fa-solid fa-pen-to-square" style="color: #60a5fa;"></i> 提示：點擊條件標籤 (V/X)、修訂時間、備註或單位即可<b>即時線上修正</b>！</div>
         </div>
 
         <!-- Filter Controls -->
@@ -525,10 +562,10 @@
                         <th style="text-align: center;">條件三</th>
                         <th style="text-align: center;">條件四</th>
                         <th style="text-align: center;">條件五</th>
-                        <th>業管單位</th>
-                        <th>最後修訂時間</th>
-                        <th>檢核備註</th>
-                        <th style="text-align: center;">操作</th>
+                        <th>業管單位 (可編輯)</th>
+                        <th>最後修訂時間 (可編輯)</th>
+                        <th>檢核備註 (可編輯)</th>
+                        <th style="text-align: center;">診斷</th>
                     </tr>
                 </thead>
                 <tbody id="table-body">
@@ -538,11 +575,11 @@
         </div>
     </div>
 
-    <!-- Modal for Document Detail & Audit Diagnostic -->
+    <!-- Modal for Document Detail & Audit Diagnostic / Editing -->
     <div class="modal-overlay" id="detail-modal">
         <div class="modal">
             <div class="modal-header">
-                <div class="modal-title" id="modal-doc-title">法規檢核詳細報告</div>
+                <div class="modal-title" id="modal-doc-title">法規檢核詳細報告與線上修正</div>
                 <button class="close-btn" onclick="closeModal()">&times;</button>
             </div>
             <div class="modal-body">
@@ -555,14 +592,19 @@
                     <div id="modal-format-bugs" class="note-tag note-bug">無</div>
                 </div>
                 <div class="detail-row">
-                    <div class="detail-label"><i class="fa-solid fa-clock-rotate-left"></i> 修訂歷史與會議摘錄：</div>
-                    <div id="modal-rev-notes" class="detail-content">解析中...</div>
+                    <div class="detail-label"><i class="fa-solid fa-pen-to-square"></i> 線上編輯檢核備註：</div>
+                    <input type="text" id="modal-edit-notes" class="editable-cell" placeholder="輸入修正備註...">
                 </div>
                 <div class="detail-row">
-                    <div class="detail-label"><i class="fa-solid fa-align-left"></i> 內文前段預覽：</div>
-                    <div id="modal-full-text" class="detail-content" style="max-height: 200px;"></div>
+                    <div class="detail-label"><i class="fa-solid fa-clock"></i> 線上編輯修訂時間：</div>
+                    <input type="text" id="modal-edit-date" class="editable-cell" placeholder="例如: 114.11.05">
                 </div>
-                <div style="text-align: right; margin-top: 20px;">
+                <div class="detail-row">
+                    <div class="detail-label"><i class="fa-solid fa-clock-rotate-left"></i> 檢核條件對照報告：</div>
+                    <div id="modal-rev-notes" class="detail-content">即時檢核中...</div>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-top: 20px;">
+                    <button class="btn btn-emerald" onclick="saveModalEdits()"><i class="fa-solid fa-floppy-disk"></i> 儲存此項修正</button>
                     <button class="btn btn-secondary" onclick="closeModal()">關閉</button>
                 </div>
             </div>
@@ -573,35 +615,93 @@
     <div class="toast" id="toast"><i class="fa-solid fa-circle-check"></i> <span id="toast-msg">更新成功</span></div>
 
     <script>
+        let rawData = [];
         let fullData = [];
+        let currentModalItem = null;
 
         async function fetchAuditData() {
             try {
-                const res = await fetch('/api/audit-results');
-                const result = await res.json();
+                let res = await fetch('/api/audit-results');
+                if (!res.ok) {
+                    res = await fetch('audit_results.json');
+                }
+                const resData = await res.json();
+                rawData = resData.data || resData;
                 
-                fullData = result.data;
-
-                // Update Stats
-                document.getElementById('stat-total').innerText = result.stats.total;
-                document.getElementById('stat-pass-rate').innerText = result.stats.c3_pass_rate + '%';
-                document.getElementById('stat-c3-fail').innerText = result.stats.c3_fail;
-                document.getElementById('stat-c4-proposals').innerText = result.stats.c4_proposals;
+                // Check if user has saved edits in localStorage
+                const saved = localStorage.getItem('fuyin_audit_edits');
+                if (saved) {
+                    try {
+                        const edits = JSON.parse(saved);
+                        fullData = rawData.map(item => {
+                            const key = `${item.sheet}_${item.seq}`;
+                            if (edits[key]) {
+                                return { ...item, ...edits[key] };
+                            }
+                            return item;
+                        });
+                    } catch (e) {
+                        fullData = [...rawData];
+                    }
+                } else {
+                    fullData = [...rawData];
+                }
 
                 // Populate Sheet Select
+                const sheets = Array.from(new Set(fullData.map(d => d.sheet)));
                 const sheetSelect = document.getElementById('sheet-select');
                 sheetSelect.innerHTML = '<option value="">所有單位 (全校 Worksheets)</option>';
-                result.sheets.forEach(s => {
+                sheets.forEach(s => {
                     const opt = document.createElement('option');
                     opt.value = s;
                     opt.innerText = s;
                     sheetSelect.appendChild(opt);
                 });
 
+                recalcStats();
                 filterData();
             } catch (e) {
                 console.error('Fetch error:', e);
             }
+        }
+
+        function recalcStats() {
+            const total = fullData.length;
+            const c3_pass = fullData.filter(d => d.c3 === 'V').length;
+            const c3_fail = fullData.filter(d => d.c3 === 'X').length;
+            const c4_proposals = fullData.filter(d => d.c4 === 'V').length;
+            const c5_proposals = fullData.filter(d => d.c5 === 'V').length;
+
+            document.getElementById('stat-total').innerText = total;
+            document.getElementById('stat-pass-rate').innerText = ((c3_pass / total) * 100).toFixed(1) + '%';
+            document.getElementById('stat-c3-fail').innerText = c3_fail;
+            document.getElementById('stat-c4-proposals').innerText = c4_proposals;
+        }
+
+        function saveStateToLocalStorage() {
+            const edits = {};
+            fullData.forEach(item => {
+                const key = `${item.sheet}_${item.seq}`;
+                edits[key] = {
+                    c1: item.c1,
+                    c2: item.c2,
+                    c3: item.c3,
+                    c4: item.c4,
+                    c5: item.c5,
+                    unit: item.unit,
+                    last_date: item.last_date,
+                    notes: item.notes
+                };
+            });
+            localStorage.setItem('fuyin_audit_edits', JSON.stringify(edits));
+            recalcStats();
+
+            // Also try posting to backend API if available
+            fetch('/api/update-item', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(currentModalItem || {})
+            }).catch(() => {});
         }
 
         function filterData() {
@@ -652,80 +752,139 @@
                     <td style="text-align: center;"><button class="cond-btn ${c3_class}" onclick="toggleCond('${item.sheet}', '${item.seq}', 'c3')">${item.c3}</button></td>
                     <td style="text-align: center;"><button class="cond-btn ${c4_class}" onclick="toggleCond('${item.sheet}', '${item.seq}', 'c4')">${item.c4}</button></td>
                     <td style="text-align: center;"><button class="cond-btn ${c5_class}" onclick="toggleCond('${item.sheet}', '${item.seq}', 'c5')">${item.c5}</button></td>
-                    <td style="color: #94a3b8; font-size: 0.82rem;">${item.unit || ''}</td>
-                    <td style="color: #60a5fa; font-weight: 500;">${item.last_date || ''}</td>
-                    <td><span class="note-tag ${isBugNote ? 'note-bug' : ''}">${item.notes || ''}</span></td>
+                    <td><input type="text" class="editable-cell" value="${item.unit || ''}" onchange="updateCellField('${item.sheet}', '${item.seq}', 'unit', this.value)"></td>
+                    <td><input type="text" class="editable-cell" style="color:#60a5fa;" value="${item.last_date || ''}" onchange="updateCellField('${item.sheet}', '${item.seq}', 'last_date', this.value)"></td>
+                    <td><input type="text" class="editable-cell" value="${item.notes || ''}" onchange="updateCellField('${item.sheet}', '${item.seq}', 'notes', this.value)"></td>
                     <td style="text-align: center;">
-                        ${item.file_matched ? `<button class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.78rem;" onclick="viewDocDetail('${item.file_matched}')"><i class="fa-solid fa-magnifying-glass-chart"></i> 診斷</button>` : '<span style="color:#64748b; font-size:0.75rem;">無對應檔</span>'}
+                        <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.78rem;" onclick="viewDocDetail('${item.sheet}', '${item.seq}')"><i class="fa-solid fa-pen-to-square"></i> 編輯</button>
                     </td>
                 `;
                 tbody.appendChild(tr);
             });
         }
 
-        async function toggleCond(sheet, seq, condKey) {
+        function toggleCond(sheet, seq, condKey) {
             const item = fullData.find(d => d.sheet === sheet && String(d.seq) === String(seq));
             if (!item) return;
 
-            // Toggle V <-> X
             item[condKey] = item[condKey] === 'V' ? 'X' : 'V';
-
-            try {
-                const res = await fetch('/api/update-item', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(item)
-                });
-                if (res.ok) {
-                    showToast(`已成功更新 ${sheet} 序號 ${seq} 之 ${condKey.toUpperCase()} 為 ${item[condKey]}`);
-                    filterData();
-                }
-            } catch (e) {
-                console.error(e);
-            }
+            saveStateToLocalStorage();
+            showToast(`已修正 ${sheet} 序號 ${seq} 之 ${condKey.toUpperCase()} 為 ${item[condKey]}`);
+            filterData();
         }
 
-        async function viewDocDetail(filename) {
-            try {
-                const res = await fetch(`/api/doc-detail?filename=${encodeURIComponent(filename)}`);
-                const data = await res.json();
-                if (data.status === 'success') {
-                    const info = data.info;
-                    document.getElementById('modal-doc-title').innerText = info.doc_title || filename;
-                    document.getElementById('modal-filename').innerText = filename;
-                    
-                    let bugText = [];
-                    if (info.has_underline) bugText.push('下劃線/底線 (Underline)');
-                    if (info.has_strike) bugText.push('刪除線 (Strikethrough)');
-                    if (info.has_color) bugText.push('各式顏色文字 (Font RGB Colors)');
-                    if (info.has_tracked_changes) bugText.push('追蹤修訂標籤 (Tracked Changes)');
+        function updateCellField(sheet, seq, fieldKey, val) {
+            const item = fullData.find(d => d.sheet === sheet && String(d.seq) === String(seq));
+            if (!item) return;
 
-                    document.getElementById('modal-format-bugs').innerText = bugText.length ? bugText.join('、') : '無格式瑕疵 (符合條件三)';
-                    document.getElementById('modal-rev-notes').innerText = info.rev_notes.length ? info.rev_notes.join('\n') : '無會議標註錄入';
-                    document.getElementById('modal-full-text').innerText = info.full_text_sample || '內文為空';
+            item[fieldKey] = val;
+            saveStateToLocalStorage();
+            showToast(`已儲存 ${sheet} 序號 ${seq} 之 ${fieldKey} 修正內容`);
+        }
 
-                    document.getElementById('detail-modal').style.display = 'flex';
-                }
-            } catch (e) {
-                console.error(e);
-            }
+        function viewDocDetail(sheet, seq) {
+            const item = fullData.find(d => d.sheet === sheet && String(d.seq) === String(seq));
+            if (!item) return;
+
+            currentModalItem = item;
+            document.getElementById('modal-doc-title').innerText = item.reg_name;
+            document.getElementById('modal-filename').innerText = item.file_matched || '全校清單對照項目';
+            
+            let bugText = item.format_bugs && item.format_bugs.length ? item.format_bugs.join('、') : '無格式瑕疵 (符合條件三)';
+            document.getElementById('modal-format-bugs').innerText = bugText;
+            document.getElementById('modal-edit-notes').value = item.notes || '';
+            document.getElementById('modal-edit-date').value = item.last_date || '';
+
+            let report = `【基本資料】\n單位：${item.sheet}\n類別：${item.category}\n業管單位：${item.unit}\n\n【條件診斷明細】\n- 條件一（最新版本）：${item.c1}\n- 條件二（名稱正確）：${item.c2}\n- 條件三（格式完整）：${item.c3}\n- 條件四（逾2年預計115提案）：${item.c4}\n- 條件五（因應組織規程修訂）：${item.c5}`;
+            
+            document.getElementById('modal-rev-notes').innerText = report;
+            document.getElementById('detail-modal').style.display = 'flex';
+        }
+
+        function saveModalEdits() {
+            if (!currentModalItem) return;
+            currentModalItem.notes = document.getElementById('modal-edit-notes').value;
+            currentModalItem.last_date = document.getElementById('modal-edit-date').value;
+            saveStateToLocalStorage();
+            showToast(`已成功修正：${currentModalItem.reg_name}`);
+            closeModal();
+            filterData();
         }
 
         function closeModal() {
             document.getElementById('detail-modal').style.display = 'none';
         }
 
-        async function triggerReAudit() {
-            showToast('開始執行全校法規重新自動檢核...', 'info');
-            try {
-                const res = await fetch('/api/re-audit', { method: 'POST' });
-                if (res.ok) {
-                    showToast('重新檢核完成！數據已即時同步。');
-                    fetchAuditData();
-                }
-            } catch (e) {
-                console.error(e);
+        function resetToDefault() {
+            if (confirm('確定要將所有修正重置為原始檢核資料嗎？')) {
+                localStorage.removeItem('fuyin_audit_edits');
+                fullData = [...rawData];
+                recalcStats();
+                filterData();
+                showToast('已重置為原始檢核數據');
             }
+        }
+
+        function exportJSON() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(fullData, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", "115年法規清單檢核表_已修訂.json");
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function exportUpdatedExcel() {
+            showToast('正在生成最新修訂版 Excel 報表...', 'info');
+
+            // Group data by sheet
+            const sheetsMap = {};
+            fullData.forEach(item => {
+                if (!sheetsMap[item.sheet]) sheetsMap[item.sheet] = [];
+                sheetsMap[item.sheet].push(item);
+            });
+
+            const wb = XLSX.utils.book_new();
+
+            for (const [sheetName, items] of Object.entries(sheetsMap)) {
+                const sheetRows = [
+                    [`${sheetName}法規清單檢核表`, "", "", "", "", "", "", "", "", "", ""],
+                    ["序號", "類別", "法規名稱", "現況(請勾選)", "", "", "", "", "業管單位", "最後一次修訂時間", "備註"],
+                    ["", "", "", "1.是否已更新為現行最新法規版本。", "2.法規名稱是否正確。", "3.法規格式是否完整(須不含底線、刪除線及各式顏色標示等)。", "4.若法規超過2年以上未更新，是否需要更新，並於115學年度行政會議提案。", "5.因應校務會議、董事會通過之組職規程修訂案，是否需要更新，並於115學年度行政會議提案。", "", "", ""]
+                ];
+
+                items.forEach(item => {
+                    sheetRows.push([
+                        item.seq,
+                        item.category,
+                        item.reg_name,
+                        item.c1,
+                        item.c2,
+                        item.c3,
+                        item.c4,
+                        item.c5,
+                        item.unit,
+                        item.last_date,
+                        item.notes
+                    ]);
+                });
+
+                sheetRows.push([]);
+                sheetRows.push(["承辦人核章："]);
+                sheetRows.push([]);
+                sheetRows.push([]);
+                sheetRows.push(["二級主管核章："]);
+                sheetRows.push([]);
+                sheetRows.push([]);
+                sheetRows.push(["一級主管核章："]);
+
+                const ws = XLSX.utils.aoa_to_sheet(sheetRows);
+                XLSX.utils.book_append_sheet(wb, ws, sheetName.substring(0, 31));
+            }
+
+            XLSX.writeFile(wb, "115年法規清單檢核表_已完成檢核修訂版.xlsx");
+            showToast('115年法規清單檢核表已成功下載！');
         }
 
         function showToast(msg) {
@@ -735,7 +894,6 @@
             setTimeout(() => { toast.style.display = 'none'; }, 3000);
         }
 
-        // Initialize on load
         fetchAuditData();
     </script>
 </body>
