@@ -232,14 +232,15 @@ def build_index_lookup():
 
     return lookup, docx_map
 
-def determine_hierarchy(reg_name, rev_notes, full_text):
-    """Determine legal hierarchy rank and mother laws."""
+def determine_hierarchy(reg_name, rev_notes, full_text, sheet_name=None):
+    """Determine legal hierarchy rank, mother laws, and compliance status."""
     # Hierarchy level (Level 1 to 5)
     # Level 2: 組織規程
     # Level 3: 辦法、學則、校務會議通過之重大母法
     # Level 4: 要點、準則、原則、行政會議或校教評會通過之業務子法
     # Level 5: 細則、規約、須知、處務/中心/館務會議通過之作業規範
     text_sample = '\n'.join(rev_notes) + '\n' + full_text[:1500]
+    clean_name = re.sub(r'\(.*?\)|（.*?）', '', reg_name).strip()
     
     if '組織規程' in reg_name:
         rank = '根本規程 (Level 2: 校務會議/教育部核定)'
@@ -285,7 +286,40 @@ def determine_hierarchy(reg_name, rev_notes, full_text):
         if len(clean_m) >= 3 and len(clean_m) <= 25 and clean_m not in mother_laws and clean_m not in reg_name:
             mother_laws.append(clean_m)
 
-    return rank, approving_body, mother_laws, art1_text.strip()[:200]
+    # -------------------------------------------------------------
+    # 評估母法與子法位階合規性 (C6)
+    # -------------------------------------------------------------
+    # 1. 檢測會議審查與法規名稱位階錯置 (Meeting Mismatch)
+    if ('要點' in clean_name or '細則' in clean_name or '原則' in clean_name or '須知' in clean_name) and approving_body == '校務會議':
+        hierarchy_status = '會議位階錯置'
+        c6 = 'X'
+        hierarchy_defect_desc = '法規名稱為「要點/細則」，但審查會議列為校務會議，審查層級過高、名實不相稱'
+        suggested_action = '建議於 115 學年度修法提案中正名為「辦法」或將核定會議下放至行政會議審查'
+    elif sheet_name and any(sheet_name.endswith(k) for k in ['系', '所', '學程']) and '辦法' in clean_name:
+        hierarchy_status = '會議位階錯置'
+        c6 = 'X'
+        hierarchy_defect_desc = '二級教學單位（系所）規章定名為全校性「辦法」且送校務會議審議，位階層級過高'
+        suggested_action = '建議更名為「作業要點」並回歸院務會議或教務會議核定'
+    elif '根本規程' in rank or '校級核心母法' in rank:
+        hierarchy_status = '母法源頭'
+        c6 = 'V'
+        hierarchy_defect_desc = '校級根本母法／法規源頭，具備最高法源地位，審查層級相符'
+        suggested_action = '定期常態檢視母法條文，確保符合教育部與國家最新法令'
+    else:
+        # 子法層級 (Level 4/5): 檢核第一條是否載明具體母法
+        valid_mothers = [m for m in mother_laws if m != '依組織規程/校務行政需要']
+        if valid_mothers:
+            hierarchy_status = '授權健全'
+            c6 = 'V'
+            hierarchy_defect_desc = '第一條明確援引授權母法：' + '、'.join(valid_mothers)
+            suggested_action = '母子法授權架構健全，維持現行條文'
+        else:
+            hierarchy_status = '缺母法法源'
+            c6 = 'X'
+            hierarchy_defect_desc = '第一條未載明上位授權母法（辦法）依據，僅載「為推動業務需要」，缺乏具體法源鏈結'
+            suggested_action = '建議於 115 學年度提案修訂第一條，增列母法依據（如：「依據本校組織規程及○○辦法第○條訂定之」）'
+
+    return rank, approving_body, mother_laws, art1_text.strip()[:200], c6, hierarchy_status, hierarchy_defect_desc, suggested_action
 
 def run_compliance_audit():
     print("==================================================================")
@@ -478,7 +512,7 @@ def run_compliance_audit():
             # Determine rank and mother laws
             full_txt = doc_info['full_text'] if doc_info else ''
             rev_nts = doc_info['rev_notes'] if doc_info else []
-            rank, approving_body, mother_laws, art1_summary = determine_hierarchy(reg_name_str, rev_nts, full_txt)
+            rank, approving_body, mother_laws, art1_summary, c6, hierarchy_status, hierarchy_defect_desc, suggested_action = determine_hierarchy(reg_name_str, rev_nts, full_txt, sheet_name)
 
             audit_item = {
                 'sheet': sheet_name,
@@ -492,6 +526,7 @@ def run_compliance_audit():
                 'c3': c3,
                 'c4': c4,
                 'c5': c5,
+                'c6': c6,
                 'unit': assigned_unit,
                 'last_date': str(last_date_str) if last_date_str else 'N/A',
                 'last_year': last_year,
@@ -503,7 +538,10 @@ def run_compliance_audit():
                 'rank': rank,
                 'approving_body': approving_body,
                 'mother_laws': mother_laws,
-                'art1_summary': art1_summary
+                'art1_summary': art1_summary,
+                'hierarchy_status': hierarchy_status,
+                'hierarchy_defect_desc': hierarchy_defect_desc,
+                'suggested_action': suggested_action
             }
             audit_db.append(audit_item)
             deep_analysis_db.append(audit_item)

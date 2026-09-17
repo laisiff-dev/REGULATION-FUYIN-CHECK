@@ -28,8 +28,64 @@ c3_pass = sum(1 for d in docs if d.get('c3') == 'V')
 c3_fail = sum(1 for d in docs if d.get('c3') == 'X')
 c4_v = sum(1 for d in docs if d.get('c4') == 'V')
 c5_v = sum(1 for d in docs if d.get('c5') == 'V')
+c6_pass = sum(1 for d in docs if d.get('c6') == 'V')
+c6_fail = sum(1 for d in docs if d.get('c6') == 'X')
+hier_root_cnt = sum(1 for d in docs if d.get('hierarchy_status') == '母法源頭')
+hier_pass_cnt = sum(1 for d in docs if d.get('hierarchy_status') == '授權健全')
+hier_missing_cnt = sum(1 for d in docs if d.get('hierarchy_status') == '缺母法法源')
+hier_mismatch_cnt = sum(1 for d in docs if d.get('hierarchy_status') == '會議位階錯置')
 
 all_units = sorted(list(set(d.get('sheet', '') for d in docs)))
+
+# Unit hierarchy stats
+unit_hier_stats = []
+for u in all_units:
+    u_docs = [d for d in docs if d.get('sheet') == u]
+    u_total = len(u_docs)
+    u_root = sum(1 for d in u_docs if d.get('hierarchy_status') == '母法源頭')
+    u_pass = sum(1 for d in u_docs if d.get('hierarchy_status') == '授權健全')
+    u_missing = sum(1 for d in u_docs if d.get('hierarchy_status') == '缺母法法源')
+    u_mismatch = sum(1 for d in u_docs if d.get('hierarchy_status') == '會議位階錯置')
+    u_ok = u_root + u_pass
+    u_rate = (u_ok / u_total * 100) if u_total else 0
+    unit_hier_stats.append({
+        'unit': u,
+        'total': u_total,
+        'root': u_root,
+        'pass': u_pass,
+        'missing': u_missing,
+        'mismatch': u_mismatch,
+        'ok': u_ok,
+        'rate': u_rate
+    })
+# Sort by defect count (missing+mismatch) descending
+unit_hier_stats.sort(key=lambda x: (x['missing'] + x['mismatch'], x['total']), reverse=True)
+
+unit_hier_rows = []
+for u in unit_hier_stats:
+    defect_total = u['missing'] + u['mismatch']
+    if defect_total >= 20:
+        urgency_badge = '<span class="pill pill-x">🔴 高整改量</span>'
+    elif defect_total >= 5:
+        urgency_badge = '<span class="pill rating-warn">🟡 中整改量</span>'
+    elif defect_total > 0:
+        urgency_badge = '<span class="pill rating-amber">🟠 待微調</span>'
+    else:
+        urgency_badge = '<span class="pill pill-v">🟢 完全合規</span>'
+
+    rate_color = "#34d399" if u['rate'] >= 70 else ("#fbbf24" if u['rate'] >= 40 else "#fb7185")
+
+    unit_hier_rows.append(f"""<tr>
+        <td><b style="color:#38bdf8;">{u['unit']}</b></td>
+        <td style="text-align:center;"><b>{u['total']}</b></td>
+        <td style="text-align:center;"><span class="badge-hier-root" style="padding:2px 8px; border-radius:10px; font-size:11px;">{u['root']}</span></td>
+        <td style="text-align:center;"><span class="badge-hier-pass" style="padding:2px 8px; border-radius:10px; font-size:11px;">{u['pass']}</span></td>
+        <td style="text-align:center;"><span class="badge-hier-missing" style="padding:2px 8px; border-radius:10px; font-size:11px; font-weight:700;">{u['missing']}</span></td>
+        <td style="text-align:center;"><span class="badge-hier-mismatch" style="padding:2px 8px; border-radius:10px; font-size:11px; font-weight:700;">{u['mismatch']}</span></td>
+        <td style="text-align:center;"><b style="color:{rate_color};">{u['rate']:.1f}%</b></td>
+        <td style="text-align:center;">{urgency_badge}</td>
+    </tr>""")
+unit_hier_table_html = "\n".join(unit_hier_rows)
 
 # Prepare JSON records for client-side JS
 audit_report_data = []
@@ -41,6 +97,10 @@ for idx, d in enumerate(docs, 1):
     c3 = d.get('c3', 'V')
     c4 = d.get('c4', 'X')
     c5 = d.get('c5', 'X')
+    c6 = d.get('c6', 'X')
+    hierarchy_status = d.get('hierarchy_status', '缺母法法源')
+    hierarchy_defect_desc = d.get('hierarchy_defect_desc', '')
+    suggested_action = d.get('suggested_action', '')
     last_date = d.get('last_date', 'N/A')
     last_year = d.get('last_year')
     diff_years = (115 - last_year) if last_year else 10
@@ -99,6 +159,10 @@ for idx, d in enumerate(docs, 1):
         'c3': c3,
         'c4': c4,
         'c5': c5,
+        'c6': c6,
+        'hierarchy_status': hierarchy_status,
+        'hierarchy_defect_desc': hierarchy_defect_desc,
+        'suggested_action': suggested_action,
         'last_date': last_date,
         'last_year': last_year,
         'diff_years': diff_years,
@@ -282,9 +346,27 @@ html_template = f'''<!DOCTYPE html>
         /* KPI Cards */
         .kpi-grid {{
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 18px;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 16px;
             margin-bottom: 24px;
+        }}
+
+        @media (max-width: 1400px) {{
+            .kpi-grid {{
+                grid-template-columns: repeat(3, 1fr);
+            }}
+        }}
+
+        @media (max-width: 900px) {{
+            .kpi-grid {{
+                grid-template-columns: repeat(2, 1fr);
+            }}
+        }}
+
+        @media (max-width: 600px) {{
+            .kpi-grid {{
+                grid-template-columns: 1fr;
+            }}
         }}
 
         .kpi-card {{
@@ -292,7 +374,7 @@ html_template = f'''<!DOCTYPE html>
             backdrop-filter: blur(12px);
             border: 1px solid var(--border-subtle);
             border-radius: var(--radius-md);
-            padding: 20px;
+            padding: 18px 20px;
             box-shadow: var(--shadow-card);
             position: relative;
             overflow: hidden;
@@ -317,6 +399,7 @@ html_template = f'''<!DOCTYPE html>
         .kpi-card.emerald::before {{ background: #10b981; }}
         .kpi-card.rose::before {{ background: #f43f5e; }}
         .kpi-card.amber::before {{ background: #f59e0b; }}
+        .kpi-card.purple::before {{ background: #a855f7; }}
 
         .kpi-header {{
             display: flex;
@@ -347,6 +430,7 @@ html_template = f'''<!DOCTYPE html>
         .kpi-card.emerald .kpi-icon {{ background: var(--emerald-bg); color: #34d399; }}
         .kpi-card.rose .kpi-icon {{ background: var(--rose-bg); color: #fb7185; }}
         .kpi-card.amber .kpi-icon {{ background: var(--amber-bg); color: #fbbf24; }}
+        .kpi-card.purple .kpi-icon {{ background: rgba(168, 85, 247, 0.15); color: #c084fc; }}
 
         .kpi-val {{
             font-size: 32px;
@@ -609,6 +693,12 @@ html_template = f'''<!DOCTYPE html>
         .rating-danger {{ background: var(--rose-bg); color: #fb7185; }}
         .rating-amber {{ background: rgba(249, 115, 22, 0.15); color: #fb923c; }}
 
+        /* Hierarchy Badges */
+        .badge-hier-root {{ background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); }}
+        .badge-hier-pass {{ background: var(--emerald-bg); color: #34d399; border: 1px solid rgba(52, 211, 153, 0.3); }}
+        .badge-hier-missing {{ background: var(--rose-bg); color: #fb7185; border: 1px solid rgba(251, 113, 133, 0.3); }}
+        .badge-hier-mismatch {{ background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3); }}
+
         /* Mermaid container */
         .mermaid-card {{
             background: rgba(15, 23, 42, 0.7);
@@ -678,6 +768,9 @@ html_template = f'''<!DOCTYPE html>
             </div>
         </div>
         <div class="meta-actions">
+            <a href="index.html" class="btn-action" style="border-color: rgba(16, 185, 129, 0.4); color: #34d399;">
+                <i class="fa-solid fa-laptop-code"></i> 線上檢核管理系統
+            </a>
             <a href="法規檢核條件欄位說明.html" class="btn-action" style="border-color: rgba(56, 189, 248, 0.4); color: #38bdf8;">
                 <i class="fa-solid fa-circle-question"></i> C1~C5 欄位意義說明
             </a>
@@ -735,6 +828,17 @@ html_template = f'''<!DOCTYPE html>
                 <i class="fa-solid fa-calendar-days" style="color:#f59e0b;"></i> 規劃於 115 學年度行政會議提案
             </div>
         </div>
+
+        <div class="kpi-card purple">
+            <div class="kpi-header">
+                <span class="kpi-title">條件一 母子位階待整改 (C6=X)</span>
+                <div class="kpi-icon"><i class="fa-solid fa-diagram-project"></i></div>
+            </div>
+            <div class="kpi-val">{c6_fail} <span class="sub">案 (合規率 {c6_pass/total_count*100:.1f}%)</span></div>
+            <div class="kpi-foot">
+                <i class="fa-solid fa-triangle-exclamation" style="color:#c084fc;"></i> 缺母法源 {hier_missing_cnt} 案 | 位階錯置 {hier_mismatch_cnt} 案
+            </div>
+        </div>
     </div>
 
     <!-- Navigation Tabs -->
@@ -745,7 +849,7 @@ html_template = f'''<!DOCTYPE html>
         </button>
         <button class="tab-btn" onclick="switchTab('hierarchy')">
             <i class="fa-solid fa-diagram-project"></i> 法規位階拓撲
-            <span class="badge-pill">6 大體系</span>
+            <span class="badge-pill">{c6_fail} 案待整改</span>
         </button>
         <button class="tab-btn" onclick="switchTab('defects')">
             <i class="fa-solid fa-highlighter"></i> 格式瑕疵剖析
@@ -786,8 +890,9 @@ html_template = f'''<!DOCTYPE html>
                     <button class="filter-tag-btn active" onclick="setSummaryFilter('all', this)">全部 ({total_count})</button>
                     <button class="filter-tag-btn" onclick="setSummaryFilter('good', this)">🟢 格式合格 ({c3_pass})</button>
                     <button class="filter-tag-btn" onclick="setSummaryFilter('format-fail', this)">🔴 格式瑕疵 ({c3_fail})</button>
+                    <button class="filter-tag-btn" onclick="setSummaryFilter('hier-fail', this)">🟣 位階待整改 ({c6_fail})</button>
                     <button class="filter-tag-btn" onclick="setSummaryFilter('overdue', this)">🟡 逾期提案 ({c4_v})</button>
-                    <button class="filter-tag-btn" onclick="setSummaryFilter('org', this)">🟣 組織修訂 ({c5_v})</button>
+                    <button class="filter-tag-btn" onclick="setSummaryFilter('org', this)">🟠 組織修訂 ({c5_v})</button>
                 </div>
             </div>
 
@@ -804,6 +909,7 @@ html_template = f'''<!DOCTYPE html>
                             <th style="text-align:center; width:65px;">C3 格式</th>
                             <th style="text-align:center; width:65px;">C4 逾期</th>
                             <th style="text-align:center; width:65px;">C5 組織</th>
+                            <th style="text-align:center; width:65px;">C6 位階</th>
                             <th style="width: 100px;">修訂時間</th>
                             <th style="width: 100px;">綜合評等</th>
                             <th>備註與改善建議</th>
@@ -877,18 +983,138 @@ graph TD
                 </pre>
             </div>
 
-            <!-- Hierarchy Table -->
-            <div class="box-title" style="margin:24px 0 14px 0;">全校 361 筆法規母子法位階清冊</div>
+            <div class="mermaid-card">
+                <h3 style="color:#38bdf8; margin-bottom:12px; font-size:16px;">4. 學生事務與校園生活權益體系</h3>
+                <pre class="mermaid">
+graph TD
+    L1_STU["學生輔導法 / 性別平等教育法 / 特殊教育法"] --> M_GENDER["性別平等教育委員會設置辦法"]
+    L1_STU --> M_STU_APP["學生申訴評議委員會組織及運作辦法"]
+    L1_STU --> M_REWARD["學生獎懲辦法"]
+    L1_STU --> M_SCHOLAR["學生就學獎助學金實施辦法"]
+    M_REWARD --> S_CLUB["學生社團輔導與活動要點"]
+    M_REWARD --> S_DORM["學生宿舍輔導與管理要點"]
+    M_SCHOLAR --> S_LOAN["就學貸款作業要點"]
+    M_SCHOLAR --> S_PEACE["學生安心就學專案助學金要點"]
+                </pre>
+            </div>
+
+            <div class="mermaid-card">
+                <h3 style="color:#38bdf8; margin-bottom:12px; font-size:16px;">5. 人事師資、聘任與升等體系</h3>
+                <pre class="mermaid">
+graph TD
+    L1_TEA["教師法 / 勞動基準法 / 私校退撫條例"] --> M_T_HIRE["教師聘任及升等辦法"]
+    L1_TEA --> M_EVAL["教師評鑑辦法"]
+    L1_TEA --> M_LABOR["適用勞基法人員工作規則"]
+    L1_TEA --> M_T_APP["教師申訴評議委員會組織及評議要點"]
+    M_T_HIRE --> S_EXTEND["專任教師年滿65歲延長服務要點"]
+    M_T_HIRE --> S_COMBINE["教師合聘要點"]
+    M_T_HIRE --> S_UPGRADE["兼任教師聘任及升等要點"]
+    M_T_HIRE --> S_TRAIN["專任教師進修要點"]
+                </pre>
+            </div>
+
+            <div class="mermaid-card">
+                <h3 style="color:#38bdf8; margin-bottom:12px; font-size:16px;">6. 圖書資訊、總務資產與行政支援體系</h3>
+                <pre class="mermaid">
+graph TD
+    L1_INFO["資通安全管理法 / 個人資料保護法 / 檔案法"] --> M_SEC["資訊安全政策"]
+    L1_INFO --> M_LIB["圖書館規程 / 館藏發展政策"]
+    L1_INFO --> M_PROP["財產管理辦法"]
+    M_LIB --> S_BORROW["圖書資源設備借用管理要點"]
+    M_SEC --> S_NET["校園網路使用規範"]
+    M_PROP --> S_PLACE["場地管理要點"]
+    M_PROP --> S_SAFE["實驗室安全衛生管理要點"]
+                </pre>
+            </div>
+
+            <!-- Unit Hierarchy Summary Table -->
+            <div style="margin: 28px 0 24px 0;">
+                <div class="box-title" style="margin-bottom:12px; color:#c084fc;">
+                    <i class="fa-solid fa-table-cells"></i> 全校 21 單位母子法位階合規與瑕疵統計表
+                </div>
+                <div class="table-responsive" style="max-height: 400px;">
+                    <table class="modern-table">
+                        <thead>
+                            <tr>
+                                <th>業管單位</th>
+                                <th style="text-align:center;">法規總數</th>
+                                <th style="text-align:center;">母法源頭</th>
+                                <th style="text-align:center;">授權健全</th>
+                                <th style="text-align:center;">缺母法源</th>
+                                <th style="text-align:center;">會議位階錯置</th>
+                                <th style="text-align:center;">合規率</th>
+                                <th style="text-align:center;">整改急迫度</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+{unit_hier_table_html}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Standard Amendment Template Box -->
+            <div style="background:rgba(168, 85, 247, 0.08); border:1px solid rgba(168, 85, 247, 0.3); border-radius:var(--radius-md); padding:20px; margin-bottom:24px;">
+                <h4 style="color:#c084fc; margin-bottom:10px; font-size:15px;">
+                    <i class="fa-solid fa-feather-pointed"></i> 115 學年度母子法位階標準化修訂指引（第一條法源依據示範範本）
+                </h4>
+                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:14px; font-size:13px; line-height:1.6;">
+                    <div style="background:rgba(15,23,42,0.6); padding:12px 16px; border-radius:8px; border-left:3px solid #38bdf8;">
+                        <b style="color:#38bdf8;">【標準 Level 4 處室/系所要點】第一條範本：</b><br>
+                        <code style="color:#e2e8f0; font-family:'JetBrains Mono',monospace; font-size:12px;">「輔英科技大學（以下簡稱本校）為辦理○○業務，依據本校組織規程第○條及○○辦法第○條規定，訂定本要點。」</code>
+                    </div>
+                    <div style="background:rgba(15,23,42,0.6); padding:12px 16px; border-radius:8px; border-left:3px solid #34d399;">
+                        <b style="color:#34d399;">【標準 Level 3 校級辦法】第一條範本：</b><br>
+                        <code style="color:#e2e8f0; font-family:'JetBrains Mono',monospace; font-size:12px;">「本校依據大學法第○條、大學法施行細則及本校組織規程第○條規定，訂定本辦法。」</code>
+                    </div>
+                    <div style="background:rgba(15,23,42,0.6); padding:12px 16px; border-radius:8px; border-left:3px solid #fb7185;">
+                        <b style="color:#fb7185;">【會議審議位階錯置】因應處置原則：</b><br>
+                        <span style="color:#cbd5e1;">「要點」屬行政規章，審議層級以行政會議為原則，無須提校務會議；若涉及全校性教研重大人員權利義務，應升格修正為「辦法」再送校務會議審議。</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hierarchy Table Filter & Search -->
+            <div class="box-title-row" style="margin-top:28px;">
+                <div class="box-title">
+                    <i class="fa-solid fa-list-check" style="color:#38bdf8;"></i>
+                    全校 361 筆法規母子法位階診斷清冊
+                </div>
+                <span id="hierFilteredStats" style="font-size:13px; color:var(--text-secondary);">顯示 361 筆</span>
+            </div>
+
+            <div class="filter-bar">
+                <div class="search-box">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="hierSearch" placeholder="搜尋法規名稱、上位母法、整改建議..." oninput="filterHierarchyTable()">
+                </div>
+
+                <select id="hierUnitFilter" class="unit-select" onchange="filterHierarchyTable()">
+                    <option value="ALL">全部單位 (All 21 Units)</option>
+                    {units_options_html}
+                </select>
+
+                <div class="filter-tags">
+                    <button class="filter-tag-btn active" onclick="setHierFilter('all', this)">全部 ({total_count})</button>
+                    <button class="filter-tag-btn" onclick="setHierFilter('root', this)">👑 母法源頭 ({hier_root_cnt})</button>
+                    <button class="filter-tag-btn" onclick="setHierFilter('pass', this)">🟢 授權健全 ({hier_pass_cnt})</button>
+                    <button class="filter-tag-btn" onclick="setHierFilter('missing', this)">🔴 缺母法源 ({hier_missing_cnt})</button>
+                    <button class="filter-tag-btn" onclick="setHierFilter('mismatch', this)">🟣 位階錯置 ({hier_mismatch_cnt})</button>
+                </div>
+            </div>
+
             <div class="table-responsive">
                 <table class="modern-table">
                     <thead>
                         <tr>
                             <th style="width: 50px;">序號</th>
                             <th style="width: 110px;">單位</th>
-                            <th>法規名稱</th>
-                            <th style="width: 180px;">位階層級</th>
-                            <th style="width: 140px;">審議/核定會議</th>
-                            <th>上位法源 / 母法依據</th>
+                            <th style="width: 220px;">法規名稱</th>
+                            <th style="width: 170px;">位階層級</th>
+                            <th style="width: 110px;">審議會議</th>
+                            <th style="width: 110px; text-align:center;">位階診斷</th>
+                            <th style="width: 260px;">上位母法依據 / 第一條現況</th>
+                            <th>具體整改行動建議</th>
                         </tr>
                     </thead>
                     <tbody id="hierarchyTableBody">
@@ -1044,6 +1270,7 @@ graph TD
                 <td style="text-align:center;"><span class="pill pill-${{item.c3.toLowerCase()}}">${{item.c3}}</span></td>
                 <td style="text-align:center;"><span class="pill pill-${{item.c4.toLowerCase()}}">${{item.c4}}</span></td>
                 <td style="text-align:center;"><span class="pill pill-${{item.c5.toLowerCase()}}">${{item.c5}}</span></td>
+                <td style="text-align:center;"><span class="pill pill-${{item.c6.toLowerCase()}}">${{item.c6}}</span></td>
                 <td><code style="font-family:'JetBrains Mono'; color:#38bdf8;">${{item.last_date}}</code></td>
                 <td><span class="pill ${{item.rating_class}}">${{item.rating}}</span></td>
                 <td style="font-size:12px; color:var(--text-secondary);">${{item.notes}}</td>
@@ -1070,6 +1297,7 @@ graph TD
             // Tag filter
             if (currentSummaryFilter === 'good') return !d.has_fmt_issues && !d.is_over_2_years;
             if (currentSummaryFilter === 'format-fail') return d.has_fmt_issues;
+            if (currentSummaryFilter === 'hier-fail') return d.c6 === 'X';
             if (currentSummaryFilter === 'overdue') return d.is_over_2_years;
             if (currentSummaryFilter === 'org') return d.has_org;
             return true;
@@ -1078,29 +1306,70 @@ graph TD
     }}
 
     function setSummaryFilter(type, btn) {{
-        document.querySelectorAll('.filter-tag-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('#tab-summary .filter-tag-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         currentSummaryFilter = type;
         filterSummaryTable();
     }}
 
     // Render Tab 2: Hierarchy Table
-    function renderHierarchyTable() {{
+    let currentHierFilter = 'all';
+
+    function renderHierarchyTable(data) {{
         const tbody = document.getElementById('hierarchyTableBody');
         tbody.innerHTML = '';
 
-        rawData.forEach(item => {{
+        data.forEach(item => {{
             const tr = document.createElement('tr');
+            let badgeClass = 'badge-hier-missing';
+            if (item.hierarchy_status === '母法源頭') badgeClass = 'badge-hier-root';
+            else if (item.hierarchy_status === '授權健全') badgeClass = 'badge-hier-pass';
+            else if (item.hierarchy_status === '會議位階錯置') badgeClass = 'badge-hier-mismatch';
+
             tr.innerHTML = `
                 <td><b>${{String(item.num).padStart(3, '0')}}</b></td>
-                <td><span style="color:#38bdf8;">${{item.unit}}</span></td>
+                <td><span style="color:#38bdf8; font-weight:500;">${{item.unit}}</span></td>
                 <td><b>${{item.title}}</b></td>
-                <td><span style="font-size:12px; font-weight:600;">${{item.rank}}</span></td>
-                <td><span style="color:#94a3b8;">${{item.meeting}}</span></td>
-                <td style="font-size:12px; color:#cbd5e1;">${{item.mother_law}}</td>
+                <td><span style="font-size:12px; font-weight:500;">${{item.rank}}</span></td>
+                <td><span style="color:#94a3b8; font-size:12px;">${{item.meeting}}</span></td>
+                <td style="text-align:center;"><span class="pill ${{badgeClass}}" style="font-size:11px;">${{item.hierarchy_status}}</span></td>
+                <td style="font-size:12px; color:#cbd5e1;">
+                    <div style="font-weight:600; color:#38bdf8; margin-bottom:2px;">${{item.mother_law}}</div>
+                    <div style="font-size:11px; color:#94a3b8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:240px;" title="${{item.art1}}">第一條：${{item.art1}}</div>
+                </td>
+                <td style="font-size:12px; color:#e2e8f0; line-height:1.4;">${{item.suggested_action}}</td>
             `;
             tbody.appendChild(tr);
         }});
+
+        const statsEl = document.getElementById('hierFilteredStats');
+        if (statsEl) statsEl.innerText = `顯示 ${{data.length}} 筆 / 全校 ${{rawData.length}} 筆`;
+    }}
+
+    function filterHierarchyTable() {{
+        const q = document.getElementById('hierSearch').value.trim().toLowerCase();
+        const selectedUnit = document.getElementById('hierUnitFilter').value;
+
+        let filtered = rawData.filter(d => {{
+            if (selectedUnit !== 'ALL' && d.unit !== selectedUnit) return false;
+
+            const matchQ = !q || d.title.toLowerCase().includes(q) || String(d.num).includes(q) || d.unit.toLowerCase().includes(q) || d.mother_law.toLowerCase().includes(q) || d.suggested_action.toLowerCase().includes(q) || d.art1.toLowerCase().includes(q);
+            if (!matchQ) return false;
+
+            if (currentHierFilter === 'root') return d.hierarchy_status === '母法源頭';
+            if (currentHierFilter === 'pass') return d.hierarchy_status === '授權健全';
+            if (currentHierFilter === 'missing') return d.hierarchy_status === '缺母法法源';
+            if (currentHierFilter === 'mismatch') return d.hierarchy_status === '會議位階錯置';
+            return true;
+        }});
+        renderHierarchyTable(filtered);
+    }}
+
+    function setHierFilter(type, btn) {{
+        document.querySelectorAll('#tab-hierarchy .filter-tag-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentHierFilter = type;
+        filterHierarchyTable();
     }}
 
     // Render Tab 3: Defect Cards
@@ -1164,7 +1433,7 @@ graph TD
     // Initial Load
     document.addEventListener('DOMContentLoaded', () => {{
         renderSummaryTable(rawData);
-        renderHierarchyTable();
+        renderHierarchyTable(rawData);
         renderDefectCards();
         renderOverdueTable();
     }});

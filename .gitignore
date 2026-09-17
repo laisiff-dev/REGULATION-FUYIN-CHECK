@@ -9,3 +9,4 @@ Thumbs.db
 
 # 法規目錄頁快取（fetch_fy_regulations.py）
 .cache/
+scratch/
