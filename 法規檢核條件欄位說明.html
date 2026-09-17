@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>輔英科技大學 法規檢核條件欄位意義說明 (C1 ~ C5 雙維度檢核手冊)</title>
+    <!-- Google Fonts & Font Awesome -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --bg-base: #0b1329;
+            --bg-surface: #131f37;
+            --bg-card: rgba(26, 38, 66, 0.75);
+            --bg-card-hover: rgba(33, 49, 86, 0.95);
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --border-focus: #38bdf8;
+            
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            
+            --brand-primary: #0284c7;
+            --brand-glow: rgba(2, 132, 199, 0.35);
+            --emerald: #10b981;
+            --emerald-bg: rgba(16, 185, 129, 0.15);
+            --rose: #f43f5e;
+            --rose-bg: rgba(244, 63, 94, 0.15);
+            --amber: #f59e0b;
+            --amber-bg: rgba(245, 158, 11, 0.15);
+            --sky: #38bdf8;
+            --sky-bg: rgba(56, 189, 248, 0.15);
+            --purple: #a855f7;
+            --purple-bg: rgba(168, 85, 247, 0.15);
+            
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 20px;
+            --shadow-card: 0 10px 30px -5px rgba(0, 0, 0, 0.4);
+            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Noto Sans TC', 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(2, 132, 199, 0.18) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(168, 85, 247, 0.15) 0px, transparent 50%),
+                radial-gradient(at 50% 100%, rgba(16, 185, 129, 0.12) 0px, transparent 50%);
+            background-attachment: fixed;
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 24px 32px;
+        }
+
+        .layout-container {
+            max-width: 1450px;
+            margin: 0 auto;
+        }
+
+        /* Top Bar */
+        header.top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg-card);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 20px 32px;
+            box-shadow: var(--shadow-card);
+            margin-bottom: 28px;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+        }
+
+        .logo-badge {
+            width: 54px;
+            height: 54px;
+            background: linear-gradient(135deg, #0284c7, #6366f1);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            color: #fff;
+            box-shadow: 0 4px 20px var(--brand-glow);
+        }
+
+        .title-group h1 {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .title-group h1 span.tag {
+            background: var(--sky-bg);
+            color: var(--sky);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            font-size: 11px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .title-group p {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .meta-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-primary);
+            padding: 9px 18px;
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .btn-action:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: var(--sky);
+            transform: translateY(-1px);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #0284c7, #2563eb);
+            border: none;
+            color: #fff;
+            box-shadow: 0 4px 12px var(--brand-glow);
+        }
+
+        /* Banner Intro */
+        .intro-banner {
+            background: linear-gradient(135deg, rgba(2, 132, 199, 0.12), rgba(99, 102, 241, 0.1));
+            border: 1px solid rgba(56, 189, 248, 0.25);
+            border-radius: var(--radius-lg);
+            padding: 24px 30px;
+            margin-bottom: 24px;
+        }
+
+        .intro-text h2 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .intro-text p {
+            font-size: 13.5px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* Callout Box for Logic Clarification */
+        .callout-box {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.35);
+            border-left: 6px solid #f59e0b;
+            border-radius: var(--radius-md);
+            padding: 20px 24px;
+            margin-bottom: 32px;
+        }
+
+        .callout-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #fbbf24;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .callout-content {
+            font-size: 13.5px;
+            color: #e2e8f0;
+            line-height: 1.7;
+        }
+
+        /* Condition Cards */
+        .conditions-container {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            margin-bottom: 36px;
+        }
+
+        .cond-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 28px 32px;
+            box-shadow: var(--shadow-card);
+            position: relative;
+            overflow: hidden;
+            transition: var(--transition);
+        }
+
+        .cond-card:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .cond-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+        }
+
+        .cond-card.blue::before { background: #0284c7; }
+        .cond-card.emerald::before { background: #10b981; }
+        .cond-card.rose::before { background: #f43f5e; }
+        .cond-card.amber::before { background: #f59e0b; }
+        .cond-card.purple::before { background: #a855f7; }
+
+        .cond-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 18px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .cond-badge-title {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .cond-code-badge {
+            font-size: 18px;
+            font-weight: 800;
+            padding: 6px 16px;
+            border-radius: var(--radius-sm);
+            letter-spacing: 0.5px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .cond-card.blue .cond-code-badge { background: var(--sky-bg); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); }
+        .cond-card.emerald .cond-code-badge { background: var(--emerald-bg); color: #34d399; border: 1px solid rgba(52, 211, 153, 0.3); }
+        .cond-card.rose .cond-code-badge { background: var(--rose-bg); color: #fb7185; border: 1px solid rgba(251, 113, 133, 0.3); }
+        .cond-card.amber .cond-code-badge { background: var(--amber-bg); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.3); }
+        .cond-card.purple .cond-code-badge { background: var(--purple-bg); color: #c084fc; border: 1px solid rgba(192, 132, 252, 0.3); }
+
+        .cond-name-group h3 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .cond-name-group p {
+            font-size: 12.5px;
+            color: var(--text-muted);
+            margin-top: 3px;
+        }
+
+        .cond-basis-tag {
+            font-size: 11.5px;
+            color: var(--text-secondary);
+            background: rgba(255, 255, 255, 0.05);
+            padding: 4px 12px;
+            border-radius: 20px;
+            border: 1px solid var(--border-subtle);
+        }
+
+        .cond-content-grid {
+            display: grid;
+            grid-template-columns: 1.3fr 1.1fr;
+            gap: 24px;
+        }
+
+        .cond-desc-box h4, .cond-val-box h4 {
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .cond-desc-text {
+            font-size: 13.5px;
+            line-height: 1.7;
+            color: var(--text-primary);
+        }
+
+        .cond-desc-text ul {
+            padding-left: 20px;
+            margin-top: 8px;
+        }
+
+        .cond-desc-text li {
+            margin-bottom: 6px;
+        }
+
+        .val-card-row {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .val-pill-item {
+            background: rgba(15, 23, 42, 0.65);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 14px 16px;
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+        }
+
+        .pill-symbol {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 800;
+            font-size: 14px;
+            padding: 4px 12px;
+            border-radius: 6px;
+            flex-shrink: 0;
+            text-align: center;
+        }
+
+        .symbol-v { background: var(--emerald-bg); color: #34d399; border: 1px solid rgba(52, 211, 153, 0.3); }
+        .symbol-x { background: var(--rose-bg); color: #fb7185; border: 1px solid rgba(251, 113, 133, 0.3); }
+        .symbol-amber-v { background: var(--amber-bg); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.3); }
+        .symbol-gray-x { background: rgba(255, 255, 255, 0.08); color: #94a3b8; border: 1px solid rgba(255, 255, 255, 0.12); }
+
+        .val-text b {
+            display: block;
+            font-size: 14px;
+            color: #fff;
+            margin-bottom: 3px;
+        }
+
+        .val-text span {
+            font-size: 12.5px;
+            color: var(--text-secondary);
+            line-height: 1.45;
+        }
+
+        /* Table Box */
+        .content-box {
+            background: var(--bg-card);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 28px 32px;
+            box-shadow: var(--shadow-card);
+            margin-bottom: 32px;
+        }
+
+        .box-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-subtle);
+        }
+
+        table.modern-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 13.5px;
+        }
+
+        table.modern-table thead {
+            background: rgba(15, 23, 42, 0.95);
+        }
+
+        table.modern-table th {
+            padding: 14px 18px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 12.5px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+            white-space: nowrap;
+        }
+
+        table.modern-table td {
+            padding: 14px 18px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            color: var(--text-primary);
+            line-height: 1.55;
+        }
+
+        table.modern-table tbody tr:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        /* Priority Grid */
+        .priority-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 18px;
+        }
+
+        .priority-card {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 18px;
+        }
+
+        .priority-card h4 {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .priority-card p {
+            font-size: 12.5px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        footer {
+            text-align: center;
+            padding: 24px 0 16px;
+            font-size: 12px;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border-subtle);
+        }
+    </style>
+</head>
+<body>
+
+<div class="layout-container">
+
+    <!-- Top Navigation Header -->
+    <header class="top-bar">
+        <div class="logo-area">
+            <div class="logo-badge">
+                <i class="fa-solid fa-book-bookmark"></i>
+            </div>
+            <div class="title-group">
+                <h1>
+                    輔英科技大學 法規檢核條件欄位意義說明
+                    <span class="tag">雙維度解析修訂版</span>
+                </h1>
+                <p>針對 C1~C5「問題回答（Yes/No）」與「品質現況（合格/待修）」之語意雙維度完整解析</p>
+            </div>
+        </div>
+        <div class="meta-actions">
+            <a href="audit_report.html" class="btn-action btn-primary">
+                <i class="fa-solid fa-chart-pie"></i> 返回綜合檢核儀表板
+            </a>
+            <a href="115年法規清單檢核表_已完成檢核.xlsx" class="btn-action" download>
+                <i class="fa-solid fa-file-excel"></i> 下載 Excel 檢核表
+            </a>
+            <a href="法規檢核條件欄位說明.md" class="btn-action" target="_blank">
+                <i class="fa-solid fa-file-code"></i> Markdown 檔
+            </a>
+        </div>
+    </header>
+
+    <!-- Callout Box for Logic Clarification -->
+    <div class="callout-box">
+        <div class="callout-title">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            關鍵概念辨析：為什麼 C4、C5 的 V 與 X 容易讓人產生「解釋相反」的錯覺？
+        </div>
+        <div class="callout-content">
+            <p>
+                在設計與審視檢核表時，一般人慣常採用<b>「通則檢核思維」</b>（即：綠色 V = 正常合格通過，紅色 X = 不合格異常）。<br>
+                然而，本校《115 年法規清單檢核表》原始設計的五道題目中，<b>設問方向存在兩類不同邏輯</b>：
+            </p>
+            <ul style="padding-left: 20px; margin: 8px 0;">
+                <li><b>C1～C3 屬於「狀態合規題」</b>：題目問「現況是否最新／正確／完整？」。因此 <b>V = 是（合格良好）</b>，<b>X = 否（瑕疵異常）</b>。</li>
+                <li><b>C4～C5 屬於「處置動作題」</b>：題目問「<b>是否需要更新，並於 115 學年度行政會議提案？</b>」。因此 <b>V = 是（需要去提案＝代表該法規逾期或含舊稱）</b>，而 <b>X = 否（不需要去提案＝代表該法規時效正常、稱謂健全）</b>！</li>
+            </ul>
+            <p style="margin-top: 6px;">
+                因此，若單從「V=合格、X=瑕疵」的直覺來看，C4 與 C5 的確會讓人誤以為「正反倒置」。以下手冊特別將<b>「題目回答維度（Yes/No）」</b>與<b>「品質狀態維度（合格/需整改）」</b>並列說明，徹底消除歧義！
+            </p>
+        </div>
+    </div>
+
+    <!-- Five Conditions Detail Section -->
+    <div class="conditions-container">
+
+        <!-- C1 -->
+        <div class="cond-card blue">
+            <div class="cond-header">
+                <div class="cond-badge-title">
+                    <span class="cond-code-badge">C1 最新</span>
+                    <div class="cond-name-group">
+                        <h3>是否已更新為現行最新法規版本（位階與版本）</h3>
+                        <p>【狀態合規題】檢測母法與子法授權位階關係，確認法規版本時效性</p>
+                    </div>
+                </div>
+                <span class="cond-basis-tag"><i class="fa-solid fa-gavel"></i> 《法規檢核五個條件_更新》第 1 條件</span>
+            </div>
+            <div class="cond-content-grid">
+                <div class="cond-desc-box">
+                    <h4><i class="fa-solid fa-list-check"></i> 核心檢核重點與實務意涵</h4>
+                    <div class="cond-desc-text">
+                        <ul>
+                            <li><b>現行法規版本核實</b>：確認受檢法規文本是否與學校法規庫及官網公告之現行施行版本完全一致，避免引用已被新修條文廢止之舊條款。</li>
+                            <li><b>母子法位階關聯確認</b>：依據我國大學自治法理與本校組織規程，檢測該法規在全校規章體系中的授權位階（Level 1 法律 &rarr; Level 2 組織規程 &rarr; Level 3 校級辦法 &rarr; Level 4 業務要點 &rarr; Level 5 作業細則）。</li>
+                            <li><b>母法法源依據健全性</b>：確認子法規是否明確援引母法或上位法規作為訂定依據（例如要點第 1 條是否載明「依本校組織規程」或「依產學合作實施辦法規定訂定」）。</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="cond-val-box">
+                    <h4><i class="fa-solid fa-tags"></i> 勾選符號定義與處置</h4>
+                    <div class="val-card-row">
+                        <div class="val-pill-item">
+                            <span class="pill-symbol symbol-v">V</span>
+                            <div class="val-text">
+                                <b>【是】版本健全合格（最新且位階明確）</b>
+                                <span>確認為本校現行有效版本，位階架構清晰並已登錄於《法規位階關係檔》。</span>
+                            </div>
+                        </div>
+                        <div class="val-pill-item">
+                            <span class="pill-symbol symbol-x">X</span>
+                            <div class="val-text">
+                                <b>【否】版本不合規（版本脫節或位階混淆）</b>
+                                <span>非最新施行版本、條文脫漏或缺乏上位法源依據，需重新釐清位階並換新文本。</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- C2 -->
+        <div class="cond-card emerald">
+            <div class="cond-header">
+                <div class="cond-badge-title">
+                    <span class="cond-code-badge">C2 名稱</span>
+                    <div class="cond-name-group">
+                        <h3>法規名稱是否正確（正式全稱與更名對照）</h3>
+                        <p>【狀態合規題】核對官方正式規章名稱與歷史修訂沿革更名紀錄</p>
+                    </div>
+                </div>
+                <span class="cond-basis-tag"><i class="fa-solid fa-signature"></i> 115 年法規清單檢核表第 2 欄</span>
+            </div>
+            <div class="cond-content-grid">
+                <div class="cond-desc-box">
+                    <h4><i class="fa-solid fa-list-check"></i> 核心檢核重點與實務意涵</h4>
+                    <div class="cond-desc-text">
+                        <ul>
+                            <li><b>法定規章類型命名</b>：檢核法規全稱是否依其審議會議層級正確冠以「規程」、「學則」、「辦法」、「要點」、「細則」或「規範」，避免層級名實不符。</li>
+                            <li><b>學校正式全銜標示</b>：法規開頭原則上應冠以「輔英科技大學」全稱，並符合校內正式公文登載慣例。</li>
+                            <li><b>歷史更名脈絡完整性</b>：若該法規歷年曾配合組織調整更名，名稱欄位須以括號註記「<code>(原：舊法規名稱)</code>」，確保新舊法規交接之法源連續性，避免行政引用困擾。</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="cond-val-box">
+                    <h4><i class="fa-solid fa-tags"></i> 勾選符號定義與處置</h4>
+                    <div class="val-card-row">
+                        <div class="val-pill-item">
+                            <span class="pill-symbol symbol-v">V</span>
+                            <div class="val-text">
+                                <b>【是】名稱健全合格（名稱正確無誤）</b>
+                                <span>法規全稱與官方最新發布公告一致，歷史別名與更名脈絡完整載明。</span>
+                            </div>
+                        </div>
+                        <div class="val-pill-item">
+                            <span class="pill-symbol symbol-x">X</span>
+                            <div class="val-text">
+                                <b>【否】名稱不合規（有名稱誤植或缺漏）</b>
+                                <span>存在簡稱替代全稱、規程類型誤用或遺漏更名歷史註記，需更正登載名稱。</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- C3 -->
+        <div class="cond-card rose">
+            <div class="cond-header">
+                <div class="cond-badge-title">
+                    <span class="cond-code-badge">C3 格式</span>
+                    <div class="cond-name-group">
+                        <h3>法規格式是否完整（不含底線、刪除線及各式顏色標示等）</h3>
+                        <p>【狀態合規題】正式發布文本之公文品質檢核，排查各類草案殘存標記</p>
+                    </div>
+                </div>
+                <span class="cond-basis-tag"><i class="fa-solid fa-brush"></i> 《法規檢核五個條件_更新》第 2 條件</span>
+            </div>
+            <div class="cond-content-grid">
+                <div class="cond-desc-box">
+                    <h4><i class="fa-solid fa-list-check"></i> 核心檢核重點與實務意涵</h4>
+                    <div class="cond-desc-text">
+                        <ul>
+                            <li><b>定稿文本純淨標準</b>：依公文規格，上網公告及呈閱之法定文本必須為「純淨黑白定稿」，不得留存內部審稿階段之修訂標記。</li>
+                            <li><b>排查底線文字（Underline）</b>：清除草案階段代表「修正新增條文」之單底線或雙底線。</li>
+                            <li><b>排查刪除線（Strikethrough）</b>：清除草案階段代表「舊條文刪除」之刪除劃線。</li>
+                            <li><b>排查非純黑色彩標示（Color RGB）</b>：排除校對標註用之紅色字（<code>#FF0000</code>）、藍色字（<code>#0000FF</code>）或突顯彩色字。</li>
+                            <li><b>排查 Word 追蹤修訂標籤與 PDF 註解</b>：清除 DOCX XML 內嵌之 <code>&lt;w:ins&gt;</code>、<code>&lt;w:del&gt;</code> 標籤及 PDF 劃線便利貼批註。</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="cond-val-box">
+                    <h4><i class="fa-solid fa-tags"></i> 勾選符號定義與處置</h4>
+                    <div class="val-card-row">
+                        <div class="val-pill-item">
+                            <span class="pill-symbol symbol-v">V</span>
+                            <div class="val-text">
+                                <b>【是】格式健全合格（純淨正式定稿）</b>
+                                <span>文本無任何底線、刪除線、色彩雜色或追蹤標記，符合定稿發布規範。</span>
+                            </div>
+                        </div>
+                        <div class="val-pill-item">
+                            <span class="pill-symbol symbol-x">X</span>
+                            <div class="val-text">
+                                <b>【否】格式瑕疵不合格（待清理重傳）</b>
+                                <span><b>不需開會提案</b>！由承辦人員開啟檔案清除標記、統一為自動黑字後重新轉存上傳。</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- C4 -->
+        <div class="cond-card amber">
+            <div class="cond-header">
+                <div class="cond-badge-title">
+                    <span class="cond-code-badge">C4 逾期</span>
+                    <div class="cond-name-group">
+                        <h3>若法規超過 2 年以上未更新，是否需要更新並於 115 學年度提案</h3>
+                        <p>【動作處置題】以民國 115 年為基準，檢核是否觸發 115 學年度修訂提案動作</p>
+                    </div>
+                </div>
+                <span class="cond-basis-tag"><i class="fa-solid fa-clock-rotate-left"></i> 《法規檢核五個條件_更新》第 3 條件</span>
+            </div>
+            <div class="cond-content-grid">
+                <div class="cond-desc-box">
+                    <h4><i class="fa-solid fa-list-check"></i> 核心檢核重點與實務意涵</h4>
+                    <div class="cond-desc-text">
+                        <ul>
+                            <li><b>設問核心為提案動作</b>：題目問的是「<b>是否需要更新，並於 115 學年度提案？</b>」，而非單純問法規狀態好壞。</li>
+                            <li><b>基準年份與逾期門檻</b>：以民國 **115 年**（西元 2026 年）為基準。若法規最後修訂年份 $\le$ 民國 **112 年**（2023 年），已逾 2 年未修，答案為「<b>是，需要提案更新</b>」。</li>
+                            <li><b>近 2 年更新者不需提案</b>：若最後修訂於 113～115 年間，法規尚屬新穎有效，答案為「<b>否，不需要提案更新</b>」。</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="cond-val-box">
+                    <h4><i class="fa-solid fa-tags"></i> 勾選符號定義與處置</h4>
+                    <div class="val-card-row">
+                        <div class="val-pill-item">
+                            <span class="pill-symbol symbol-amber-v">V</span>
+                            <div class="val-text">
+                                <b>【是】需要提案更新（品質現況：逾期滯後 &le;112年）</b>
+                                <span>法規已逾 2 年未修訂，**需執行提案動作**，已納入《法規逾期未更新標註檔》排入 115 提案。</span>
+                            </div>
+                        </div>
+                        <div class="val-pill-item">
+                            <span class="pill-symbol symbol-gray-x">X</span>
+                            <div class="val-text">
+                                <b>【否】無需提案更新（品質現況：時效正常 113~115年）</b>
+                                <span>近 2 年內曾修訂，法規時效性符合規範，**不需執行提案動作**，維持常態運作。</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- C5 -->
+        <div class="cond-card purple">
+            <div class="cond-header">
+                <div class="cond-badge-title">
+                    <span class="cond-code-badge">C5 組織</span>
+                    <div class="cond-name-group">
+                        <h3>因應校務會議、董事會通過之組織規程修訂案，是否需要更新提案</h3>
+                        <p>【動作處置題】排查條文舊稱，檢核是否觸發因應組織規程修訂之提案動作</p>
+                    </div>
+                </div>
+                <span class="cond-basis-tag"><i class="fa-solid fa-building-columns"></i> 115 年法規清單檢核表第 5 欄</span>
+            </div>
+            <div class="cond-content-grid">
+                <div class="cond-desc-box">
+                    <h4><i class="fa-solid fa-list-check"></i> 核心檢核重點與實務意涵</h4>
+                    <div class="cond-desc-text">
+                        <ul>
+                            <li><b>設問核心為更名提案動作</b>：題目問的是「<b>是否需要因組織規程修訂案，更新並於 115 提案？</b>」。</li>
+                            <li><b>排查外部中央主管機關舊稱</b>：條文仍殘留「<b>科技部</b>」（應改為國科會）、「<b>行政院衛生署</b>」（衛福部）、「<b>行政院環境保護署</b>」（環境部）等。</li>
+                            <li><b>排查本校組織規程更名舊稱</b>：條文仍載有「<b>研究發展處／研發處</b>」（應改為研究暨產學發展處）、「<b>電子計算機中心／電算中心</b>」（圖資處）、「<b>體育室</b>」（體促中心）、「<b>衛生保健組</b>」（健康中心）、「<b>軍訓室</b>」等。</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="cond-val-box">
+                    <h4><i class="fa-solid fa-tags"></i> 勾選符號定義與處置</h4>
+                    <div class="val-card-row">
+                        <div class="val-pill-item">
+                            <span class="pill-symbol symbol-x">V</span>
+                            <div class="val-text">
+                                <b>【是】需要配合提案修訂（品質現況：含舊稱需修正）</b>
+                                <span>條文發現過時組織名稱，**需執行提案動作**，建議併入 115-1 行政會議優先提案修訂。</span>
+                            </div>
+                        </div>
+                        <div class="val-pill-item">
+                            <span class="pill-symbol symbol-gray-x">X</span>
+                            <div class="val-text">
+                                <b>【否】無需因組織提案（品質現況：稱謂健全正確）</b>
+                                <span>條文無殘留廢止舊機關名稱，**不需執行更名提案**，稱謂與現行架構完全吻合。</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Quick Reference Comparison Table (Dual Dimension) -->
+    <div class="content-box">
+        <div class="box-title">
+            <i class="fa-solid fa-table-columns" style="color:#38bdf8;"></i>
+            五大檢核條件雙維度對照總結表（問題回答 vs 品質現況）
+        </div>
+        <p style="font-size:13.5px; color:var(--text-secondary); margin-bottom:16px;">
+            下表完整拆解「原始設問的回答維度（Yes/No）」與大眾慣常認知的「法規品質狀態維度（合格/瑕疵）」，消弭 C1~C3 與 C4~C5 設問方向不同所帶來的理解衝突：
+        </p>
+        <div class="table-responsive">
+            <table class="modern-table">
+                <thead>
+                    <tr>
+                        <th style="width: 85px;">欄位代碼</th>
+                        <th>官方原始檢核題目</th>
+                        <th style="width: 210px;">原始問題回答維度 (Yes / No)</th>
+                        <th style="width: 220px;">法規品質現況維度 (合格 / 待修)</th>
+                        <th style="width: 140px; text-align:center;">符號代表意義</th>
+                        <th>後續業務處置指引</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><b>C1 最新</b></td>
+                        <td>1. 是否已更新為現行最新法規版本。</td>
+                        <td>
+                            <b>V</b> = 是，為最新版本<br>
+                            <b>X</b> = 否，非最新版本
+                        </td>
+                        <td>
+                            <span style="color:#34d399;">🟢 健全合格</span>（最新且位階清楚）<br>
+                            <span style="color:#fb7185;">🔴 不合規</span>（版本或位階脫節）
+                        </td>
+                        <td style="text-align:center;">
+                            <span class="pill-symbol symbol-v" style="font-size:11px; padding:2px 8px;">V:合格</span>
+                            <span class="pill-symbol symbol-x" style="font-size:11px; padding:2px 8px;">X:不合規</span>
+                        </td>
+                        <td>核實官網現行定稿，釐清上位母法並登錄位階關係檔</td>
+                    </tr>
+                    <tr>
+                        <td><b>C2 名稱</b></td>
+                        <td>2. 法規名稱是否正確。</td>
+                        <td>
+                            <b>V</b> = 是，名稱正確<br>
+                            <b>X</b> = 否，有名稱瑕疵
+                        </td>
+                        <td>
+                            <span style="color:#34d399;">🟢 健全合格</span>（正式全稱與舊名無誤）<br>
+                            <span style="color:#fb7185;">🔴 不合規</span>（名稱有誤或缺舊名）
+                        </td>
+                        <td style="text-align:center;">
+                            <span class="pill-symbol symbol-v" style="font-size:11px; padding:2px 8px;">V:合格</span>
+                            <span class="pill-symbol symbol-x" style="font-size:11px; padding:2px 8px;">X:不合規</span>
+                        </td>
+                        <td>修正規程類型命名，補齊「(原：舊法規名稱)」註記</td>
+                    </tr>
+                    <tr>
+                        <td><b>C3 格式</b></td>
+                        <td>3. 法規格式是否完整(須不含底線、刪除線及各式顏色標示等)。</td>
+                        <td>
+                            <b>V</b> = 是，格式完整純淨<br>
+                            <b>X</b> = 否，格式存在瑕疵
+                        </td>
+                        <td>
+                            <span style="color:#34d399;">🟢 乾淨合格</span>（無草案底線/雜色）<br>
+                            <span style="color:#fb7185;">🔴 格式瑕疵</span>（含草案底線/字色）
+                        </td>
+                        <td style="text-align:center;">
+                            <span class="pill-symbol symbol-v" style="font-size:11px; padding:2px 8px;">V:合格</span>
+                            <span class="pill-symbol symbol-x" style="font-size:11px; padding:2px 8px;">X:瑕疵</span>
+                        </td>
+                        <td><b>不需開會提案</b>！承辦人依 SOP 清除底線與字色後重傳定稿</td>
+                    </tr>
+                    <tr>
+                        <td><b>C4 逾期</b></td>
+                        <td>4. 若法規超過2年以上未更新，<b>是否需要更新並於115學年度行政會議提案</b>。</td>
+                        <td>
+                            <b style="color:#fbbf24;">V = 是，需要提案更新</b><br>
+                            <b style="color:#94a3b8;">X = 否，不需要提案更新</b>
+                        </td>
+                        <td>
+                            <span style="color:#fbbf24;">🟡 逾期滯後</span>（&le;112年未修訂）<br>
+                            <span style="color:#34d399;">🟢 時效正常</span>（113~115年曾更新）
+                        </td>
+                        <td style="text-align:center;">
+                            <span class="pill-symbol symbol-amber-v" style="font-size:11px; padding:2px 8px;">V:需提案</span>
+                            <span class="pill-symbol symbol-gray-x" style="font-size:11px; padding:2px 8px;">X:時效OK</span>
+                        </td>
+                        <td><b>納入標註檔</b>，分二梯次排入 115 學年度行政會議檢討提案</td>
+                    </tr>
+                    <tr>
+                        <td><b>C5 組織</b></td>
+                        <td>5. 因應組織規程修訂案，<b>是否需要更新並於115學年度行政會議提案</b>。</td>
+                        <td>
+                            <b style="color:#fb7185;">V = 是，需要配合提案修正</b><br>
+                            <b style="color:#94a3b8;">X = 否，不需要提案修正</b>
+                        </td>
+                        <td>
+                            <span style="color:#fb7185;">🔴 含舊稱需修正</span>（科技部/衛生署等）<br>
+                            <span style="color:#34d399;">🟢 稱謂健全正常</span>（無過時舊稱）
+                        </td>
+                        <td style="text-align:center;">
+                            <span class="pill-symbol symbol-x" style="font-size:11px; padding:2px 8px;">V:需提案</span>
+                            <span class="pill-symbol symbol-gray-x" style="font-size:11px; padding:2px 8px;">X:稱謂OK</span>
+                        </td>
+                        <td>將「科技部」、「衛生署」、「研發處」等舊稱列入 115-1 優先提案</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Rating & Priority Strategy -->
+    <div class="content-box">
+        <div class="box-title">
+            <i class="fa-solid fa-sliders" style="color:#38bdf8;"></i>
+            系統綜合評等組合與處置優先序策略
+        </div>
+        <p style="font-size:13.5px; color:var(--text-secondary); margin-bottom:18px;">
+            在儀表板與報表中，系統結合 C3（格式）、C4（逾期提案）、C5（組織更名）判定結果，自動組合為四級處置策略：
+        </p>
+        <div class="priority-grid">
+            <div class="priority-card" style="border-left: 4px solid #10b981;">
+                <h4 style="color:#34d399;"><i class="fa-solid fa-circle-check"></i> 🟢 優良 (Rating Good)</h4>
+                <p>
+                    <b>判定要件</b>：C3=V 且 C4=X 且 C5=X<br>
+                    <b>業務意涵</b>：格式完全合格、時效正常（近2年修訂）、組織稱謂正確。列為學校標準示範法規，維持常態維護。
+                </p>
+            </div>
+            <div class="priority-card" style="border-left: 4px solid #fbbf24;">
+                <h4 style="color:#fbbf24;"><i class="fa-solid fa-paint-roller"></i> 🟡 格式待修 (Format Fix)</h4>
+                <p>
+                    <b>判定要件</b>：C3=X 且 C4=X 且 C5=X<br>
+                    <b>業務意涵</b>：條文內容時效正常，但定稿殘存紅藍字或底線。<b>無需開會提案</b>，由承辦單位直接清理文本重新上網。
+                </p>
+            </div>
+            <div class="priority-card" style="border-left: 4px solid #fb923c;">
+                <h4 style="color:#fb923c;"><i class="fa-solid fa-calendar-plus"></i> 🟡 提案待修 (Proposal Needed)</h4>
+                <p>
+                    <b>判定要件</b>：C3=V 且 C4=V 且 C5=X<br>
+                    <b>業務意涵</b>：格式純淨但已逾 2 年未更新，業務單位需檢討內容適用性，依提案排程提報 115 學年度行政會議。
+                </p>
+            </div>
+            <div class="priority-card" style="border-left: 4px solid #fb7185;">
+                <h4 style="color:#fb7185;"><i class="fa-solid fa-triangle-exclamation"></i> 🔴 急迫整改 (Urgent Action)</h4>
+                <p>
+                    <b>判定要件</b>：C5=V 或 未修訂年數 &ge; 7 年<br>
+                    <b>業務意涵</b>：條文含已廢止之舊稱（科技部/衛生署）或久未修訂，具實質法律瑕疵，<b>優先排入 115-1 行政會議提案</b>。
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        輔英科技大學 全校法規自主檢核專案組 &copy; 民國 115 年 9 月 編定 | 適用於全校 21 個一級與二級行政及學術單位
+    </footer>
+
+</div>
+
+</body>
+</html>

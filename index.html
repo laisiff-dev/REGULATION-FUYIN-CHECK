@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>輔英科技大學 研發處法規檢核與管理系統 (115學年度法規檢核表)</title>
+    <title>輔英科技大學 全校各單位法規檢核與管理系統 (115學年度法規檢核表)</title>
     <!-- Google Fonts, Font Awesome, SheetJS & Mammoth.js -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -522,10 +522,11 @@
         <!-- Header -->
         <header>
             <div class="header-title">
-                <h1><i class="fa-solid fa-scale-balanced"></i> 輔英科技大學 研發處法規檢核與管理系統</h1>
+                <h1><i class="fa-solid fa-scale-balanced"></i> 輔英科技大學 全校各單位法規檢核與管理系統</h1>
                 <p>依據「法規檢核五個條件」提供檔案上傳自動解析、線上修正與 115 年清單匯出</p>
             </div>
             <div class="header-actions">
+                <a href="audit_report.html" class="btn btn-primary" style="background: linear-gradient(135deg, #0284c7, #6366f1);"><i class="fa-solid fa-chart-pie"></i> 查看五條件檢核綜合報告</a>
                 <button class="btn btn-amber" onclick="openUploadModal()"><i class="fa-solid fa-cloud-arrow-up"></i> 上傳檔案新增/修正法規</button>
                 <button class="btn btn-emerald" onclick="exportUpdatedExcel()"><i class="fa-solid fa-file-excel"></i> 匯出修訂後 115年法規清單檢核表.xlsx</button>
                 <button class="btn btn-secondary" onclick="exportJSON()"><i class="fa-solid fa-file-code"></i> 匯出 JSON</button>

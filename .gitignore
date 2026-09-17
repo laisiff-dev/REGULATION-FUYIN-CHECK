@@ -6,3 +6,6 @@ __pycache__/
 Thumbs.db
 .vscode/
 .idea/
+
+# 法規目錄頁快取（fetch_fy_regulations.py）
+.cache/
