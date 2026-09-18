@@ -60,9 +60,8 @@ STRUCTURE = {
     },
     '03_研究與中心機構': [
         '01_老化及疾病預防研究中心',
-        '02_校務研究與永續發展中心',
-        '03_精準健康與環境檢驗中心',
-        '04_任務導向型研究中心'
+        '02_精準健康與環境檢驗中心',
+        '03_任務導向型研究中心'
     ],
     '04_專門委員會與附設機構': [
         '01_產學合作暨智財管理委員會',
@@ -110,7 +109,6 @@ def create_directories():
 def copy_regulations():
     """Copy the 38 regulation files from root to the corresponding subdirectories."""
     rd_dir = os.path.join(BASE_DIR, '01_行政單位', '06_研發與永續發展處')
-    ir_dir = os.path.join(BASE_DIR, '03_研究與中心機構', '02_校務研究與永續發展中心')
     comm_ip_dir = os.path.join(BASE_DIR, '04_專門委員會與附設機構', '01_產學合作暨智財管理委員會')
     comm_eth_dir = os.path.join(BASE_DIR, '04_專門委員會與附設機構', '02_學術誠信與研究倫理委員會')
     comm_sdg_dir = os.path.join(BASE_DIR, '04_專門委員會與附設機構', '03_永續發展委員會')
@@ -122,7 +120,7 @@ def copy_regulations():
             num = int(m.group(1))
             
             # Destination mapping
-            if 1 <= num <= 35:
+            if 1 <= num <= 38:
                 dest = os.path.join(rd_dir, f)
                 shutil.copy2(f, dest)
                 copied_count += 1
@@ -131,11 +129,7 @@ def copy_regulations():
                     shutil.copy2(f, os.path.join(comm_ip_dir, f))
                 elif num == 34: # 倫理委員會辦法
                     shutil.copy2(f, os.path.join(comm_eth_dir, f))
-            elif 36 <= num <= 38:
-                dest = os.path.join(ir_dir, f)
-                shutil.copy2(f, dest)
-                copied_count += 1
-                if num == 37: # 永續發展委員會要點
+                elif num == 37: # 永續發展委員會要點
                     shutil.copy2(f, os.path.join(comm_sdg_dir, f))
 
     print(f"已成功歸檔複製 {copied_count} 份法規文件至專屬單位子目錄！")
@@ -159,7 +153,7 @@ def generate_readmes():
         "- `03_教務處/`：學則、選課、成績、教師評鑑等教學法規",
         "- `04_學生事務處/`：學生獎懲、就學貸款、社團輔導法規",
         "- `05_總務處/`：採購、財產、營繕、出納管理法規",
-        "- `06_研發與永續發展處/`：**【現有法規歸檔主力】** 包含 01~35 號研發獎勵、專利、技轉、產學合作法規",
+        "- `06_研發與永續發展處/`：**【現有法規歸檔主力】** 包含原研發處與原校務發展辦公室（校務研究暨規劃室）整合發布之研發獎勵、專利、技轉、產學合作與校務發展法規",
         "- `07_圖書暨資訊處/`：圖書借閱、校園網路、資安政策規章",
         "- `08_國際暨兩岸事務處/`：境外生招生、國際交流、雙聯學位要點",
         "- `09_人事室/`：教職員聘任、升等、請假、考核及退撫法規",
@@ -178,9 +172,8 @@ def generate_readmes():
         "",
         "### 3. [03_研究與中心機構](./03_研究與中心機構/)",
         "- `01_老化及疾病預防研究中心/`：共享儀器設備管理、中心運作要點",
-        "- `02_校務研究與永續發展中心/`：**【現有法規歸檔主力】** 第 36~38 號校務研究設置辦法、永續委員會要點、校務資料庫管理要點",
-        "- `03_精準健康與環境檢驗中心/`：檢驗認證規約與服務要點",
-        "- `04_任務導向型研究中心/`：各型研究中心設置與退場作業要點",
+        "- `02_精準健康與環境檢驗中心/`：檢驗認證規約與服務要點",
+        "- `03_任務導向型研究中心/`：各型研究中心設置與退場作業要點",
         "",
         "### 4. [04_專門委員會與附設機構](./04_專門委員會與附設機構/)",
         "- `01_產學合作暨智財管理委員會/`（對應第 27 號辦法）",
@@ -206,18 +199,17 @@ def generate_readmes():
     rd_readme = [
         "# 研發與永續發展處 法規彙整清單",
         "",
-        "本目錄收錄輔英科技大學研發與永續發展處（原研究發展處）現行主管之法規文件（編號 01 至 35）：",
+        "本目錄收錄輔英科技大學研發與永續發展處（整合原研究發展處及原校務發展辦公室/校務研究暨規劃室）現行主管之法規文件（編號 01 至 38）：",
         "",
         "| 編號 | 法規名稱 | 位階等級 | 最後修訂日期 | 格式檢核 | 逾期提案標註 |",
         "| :---: | :--- | :---: | :---: | :---: | :---: |"
     ]
-    # read full_audit_data.json
     import json
     with open('full_audit_data.json', 'r', encoding='utf-8') as fp:
         docs = json.load(fp)
 
     for d in docs:
-        if 1 <= d['num'] <= 35:
+        if 1 <= d['num'] <= 38:
             c3_icon = '🟢 合格' if not d['has_fmt_issues'] else '🔴 含瑕疵'
             c4_icon = '🔴 逾期需提案' if d['is_over_2_years'] else '🟢 正常'
             rd_readme.append(f"| {d['num']:02d} | **{d['raw_name']}** | {d['rank']} | `{d['last_date']}` | {c3_icon} | {c4_icon} |")
@@ -229,25 +221,6 @@ def generate_readmes():
     ])
     with open(os.path.join(rd_dir, 'README.md'), 'w', encoding='utf-8') as f:
         f.write('\n'.join(rd_readme))
-
-    # IR Center README
-    ir_dir = os.path.join(BASE_DIR, '03_研究與中心機構', '02_校務研究與永續發展中心')
-    ir_readme = [
-        "# 校務研究與永續發展中心 法規彙整清單",
-        "",
-        "本目錄收錄校務研究與永續發展中心（原校務研究暨規劃室）現行主管之法規文件（編號 36 至 38）：",
-        "",
-        "| 編號 | 法規名稱 | 位階等級 | 最後修訂日期 | 格式檢核 | 逾期提案標註 |",
-        "| :---: | :--- | :---: | :---: | :---: | :---: |"
-    ]
-    for d in docs:
-        if 36 <= d['num'] <= 38:
-            c3_icon = '🟢 合格' if not d['has_fmt_issues'] else '🔴 含瑕疵'
-            c4_icon = '🔴 逾期需提案' if d['is_over_2_years'] else '🟢 正常'
-            ir_readme.append(f"| {d['num']:02d} | **{d['raw_name']}** | {d['rank']} | `{d['last_date']}` | {c3_icon} | {c4_icon} |")
-
-    with open(os.path.join(ir_dir, 'README.md'), 'w', encoding='utf-8') as f:
-        f.write('\n'.join(ir_readme))
 
     print("已成功建立總目錄及各重點單位之 README.md 索引檔案！")
 

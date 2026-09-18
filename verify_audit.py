@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 verify_audit.py
-驗證全校 21 個單位、361 筆法規檢核成果與 Excel/JSON 資料庫之完整性與一致性。
+# 驗證全校 20 個單位、361 筆法規檢核成果與 Excel/JSON 資料庫之完整性與一致性。
 """
 
 import json

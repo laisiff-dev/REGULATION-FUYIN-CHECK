@@ -29,12 +29,16 @@ OUTDATED_KEYWORDS = {
     '科技部': '國家科學及技術委員會(國科會)',
     '行政院衛生署': '衛生福利部',
     '行政院環境保護署': '環境部',
-    '研究發展處': '研究暨產學發展處',
+    '研究發展處': '研發與永續發展處',
+    '研發處': '研發與永續發展處',
+    '研究暨產學發展處': '研發與永續發展處',
+    '校務發展辦公室': '研發與永續發展處',
+    '校務研究暨規劃室': '研發與永續發展處',
+    '校務研究室': '研發與永續發展處',
     '電算中心': '圖書暨資訊處',
     '電子計算機中心': '圖書暨資訊處',
     '體育室': '體育暨健康促進中心',
     '衛生保健組': '健康中心',
-    '校務研究室': '校務研究與永續發展中心',
     '軍訓室': '學生事務處生活輔導組/校安中心'
 }
 
@@ -48,6 +52,38 @@ def normalize_text(s):
     s = re.sub(r'（.*?）', '', s)
     s = re.sub(r'[_\s\(\)（）\.\d\-、，。：:]', '', s)
     return s.strip()
+
+def extract_doc_date(full_text):
+    if not full_text:
+        return None, None
+    full_text = unicodedata.normalize('NFKC', full_text)
+    patterns = [
+        r'(?<!\d)(\d{2,3})\s*年\s*(\d{1,2})\s*月(?:\s*(\d{1,2})\s*日)?',
+        r'(?<![\d.])(\d{2,3})\.(\d{1,2})\.(\d{1,2})(?![\d.])',
+        r'(?<![\d/])(\d{2,3})/(\d{1,2})/(\d{1,2})(?![\d/])',
+        r'(?<!\d)(\d{2,3})\s*學年度'
+    ]
+    found = []
+    for p in patterns:
+        for m in re.finditer(p, full_text):
+            groups = m.groups()
+            y = int(groups[0])
+            if 60 <= y <= 125:
+                if len(groups) >= 3 and groups[1] and groups[2]:
+                    mo, d = int(groups[1]), int(groups[2])
+                    if 1 <= mo <= 12 and 1 <= d <= 31:
+                        found.append((y, mo, d, f"{y}.{mo:02d}.{d:02d}"))
+                elif len(groups) >= 2 and groups[1]:
+                    mo = int(groups[1])
+                    if 1 <= mo <= 12:
+                        found.append((y, mo, 1, f"{y}.{mo:02d}"))
+                else:
+                    found.append((y, 1, 1, f"{y}學年度"))
+    if found:
+        found.sort(key=lambda x: (x[0], x[1], x[2]))
+        latest = found[-1]
+        return latest[0], latest[3]
+    return None, None
 
 def parse_docx(file_path):
     """Deeply inspect a DOCX document for compliance conditions."""
@@ -92,19 +128,7 @@ def parse_docx(file_path):
                             if color_str not in ['000000', '00000000', 'AUTO', 'DEFAULT']:
                                 has_color = True
 
-    date_matches = re.findall(r'(\d{2,3})[年\.]\s*(\d{1,2})[月\.]\s*(\d{1,2})[日]?', full_text)
-    last_date_str = None
-    last_year = None
-    if date_matches:
-        sorted_dates = sorted(date_matches, key=lambda x: (int(x[0]), int(x[1]), int(x[2])))
-        latest = sorted_dates[-1]
-        last_year = int(latest[0])
-        last_date_str = f"{latest[0]}.{int(latest[1]):02d}.{int(latest[2]):02d}"
-    else:
-        acad_years = re.findall(r'(\d{2,3})\s*學年度', full_text)
-        if acad_years:
-            last_year = max([int(y) for y in acad_years])
-            last_date_str = f"{last_year}學年度"
+    last_year, last_date_str = extract_doc_date(full_text)
 
     rev_notes = []
     for p in paras[:15]:
@@ -161,19 +185,7 @@ def parse_pdf(file_path):
             if line_str:
                 paras.append(line_str)
 
-    date_matches = re.findall(r'(\d{2,3})[年\.]\s*(\d{1,2})[月\.]\s*(\d{1,2})[日]?', full_text[:2000])
-    last_date_str = None
-    last_year = None
-    if date_matches:
-        sorted_dates = sorted(date_matches, key=lambda x: (int(x[0]), int(x[1]), int(x[2])))
-        latest = sorted_dates[-1]
-        last_year = int(latest[0])
-        last_date_str = f"{latest[0]}.{int(latest[1]):02d}.{int(latest[2]):02d}"
-    else:
-        acad_years = re.findall(r'(\d{2,3})\s*學年度', full_text[:2000])
-        if acad_years:
-            last_year = max([int(y) for y in acad_years])
-            last_date_str = f"{last_year}學年度"
+    last_year, last_date_str = extract_doc_date(full_text)
 
     rev_notes = []
     for p in paras[:18]:
@@ -399,15 +411,16 @@ def run_compliance_audit():
             # Date determination
             last_date_str = None
             last_year = None
-            if matched_entry and matched_entry.get('last_date_roc'):
-                last_date_str = matched_entry['last_date_roc']
-                m = re.match(r'(\d+)', last_date_str)
-                if m:
-                    last_year = int(m.group(1))
 
-            if not last_date_str and doc_info:
+            if doc_info and doc_info.get('last_date_str'):
                 last_date_str = doc_info['last_date_str']
                 last_year = doc_info['last_year']
+
+            if not last_date_str and matched_entry and matched_entry.get('last_date_roc'):
+                last_date_str = matched_entry['last_date_roc']
+                m = re.match(r'(\d+)', str(last_date_str))
+                if m:
+                    last_year = int(m.group(1))
 
             # Fallback to existing excel cell value
             if not last_date_str:
