@@ -25,6 +25,31 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 REG_ARCHIVE_DIR = os.path.join(BASE_DIR, '輔英科大各單位法規彙整')
 INDEX_JSON_PATH = os.path.join(REG_ARCHIVE_DIR, '法規彙整索引.json')
 
+BASE_WEB_URL = "https://ese.fy.edu.tw/var/file/57/1057/img/125/"
+
+def resolve_link_info(file_matched):
+    """Resolves repository relative path and official online web URL (連點網址)."""
+    rel_path = None
+    web_url = None
+    if file_matched:
+        if os.path.isabs(str(file_matched)):
+            try:
+                rel = os.path.relpath(str(file_matched), BASE_DIR)
+                rel_path = rel.replace('\\', '/')
+            except ValueError:
+                rel_path = str(file_matched).replace('\\', '/')
+        else:
+            rel_path = str(file_matched).replace('\\', '/')
+
+        m = re.search(r'(law\d+)', str(file_matched), re.IGNORECASE)
+        if m:
+            law_code = m.group(1).lower()
+            web_url = f"{BASE_WEB_URL}{law_code}.pdf"
+        elif rel_path:
+            web_url = f"https://github.com/laisiff-dev/REGULATION-FUYIN-CHECK/raw/main/{rel_path}"
+    return rel_path, web_url
+
+
 OUTDATED_KEYWORDS = {
     '科技部': '國家科學及技術委員會(國科會)',
     '行政院衛生署': '衛生福利部',
@@ -527,12 +552,17 @@ def run_compliance_audit():
             rev_nts = doc_info['rev_notes'] if doc_info else []
             rank, approving_body, mother_laws, art1_summary, c6, hierarchy_status, hierarchy_defect_desc, suggested_action = determine_hierarchy(reg_name_str, rev_nts, full_txt, sheet_name)
 
+            raw_file_matched = doc_info.get('file_matched') if doc_info else (pdf_file or None)
+            rel_path, web_url = resolve_link_info(raw_file_matched)
+
             audit_item = {
                 'sheet': sheet_name,
                 'seq': seq_val,
                 'category': category,
                 'reg_name': reg_name_str,
-                'file_matched': doc_info.get('file_matched') if doc_info else (pdf_file or None),
+                'file_matched': rel_path or raw_file_matched,
+                'rel_path': rel_path,
+                'web_url': web_url,
                 'file_type': doc_info.get('file_type', 'PDF') if doc_info else 'NONE',
                 'c1': c1,
                 'c2': c2,
@@ -663,12 +693,16 @@ def run_compliance_audit():
                 rev_nts = doc_info['rev_notes'] if doc_info else []
                 rank, approving_body, mother_laws, art1_summary, c6, hierarchy_status, hierarchy_defect_desc, suggested_action = determine_hierarchy(reg_name_str, rev_nts, full_txt, unit_name)
 
+                rel_path, web_url = resolve_link_info(abs_path)
+
                 audit_item = {
                     'sheet': unit_name,
                     'seq': len(audit_db) + 1,
                     'category': category,
                     'reg_name': reg_name_str,
-                    'file_matched': abs_path,
+                    'file_matched': rel_path or abs_path,
+                    'rel_path': rel_path,
+                    'web_url': web_url,
                     'file_type': doc_info.get('file_type', 'PDF') if doc_info else 'NONE',
                     'c1': c1,
                     'c2': c2,

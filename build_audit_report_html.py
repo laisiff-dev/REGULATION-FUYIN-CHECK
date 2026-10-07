@@ -150,6 +150,8 @@ for idx, d in enumerate(docs, 1):
         'title': name,
         'unit': unit,
         'category': d.get('category', ''),
+        'web_url': d.get('web_url', ''),
+        'rel_path': d.get('rel_path', d.get('file_matched', '')),
         'rank': rank,
         'meeting': meeting,
         'mother_law': mother_str,
@@ -1260,11 +1262,14 @@ graph TD
         tbody.innerHTML = '';
 
         data.forEach(item => {{
+            const webUrl = item.web_url || (item.rel_path ? (item.rel_path.indexOf('http') === 0 ? item.rel_path : 'https://github.com/laisiff-dev/REGULATION-FUYIN-CHECK/raw/main/' + item.rel_path) : '');
+            const linkBtn = webUrl ? `<a href="${{webUrl}}" target="_blank" style="margin-left:6px; font-size:11px; color:#38bdf8; text-decoration:none; background:rgba(56,189,248,0.15); padding:2px 6px; border-radius:4px; border:1px solid rgba(56,189,248,0.3);"><i class="fa-solid fa-arrow-up-right-from-square"></i> 線上連點</a>` : '';
+
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td><b>${{String(item.num).padStart(3, '0')}}</b></td>
                 <td><span style="color:#38bdf8; font-weight:500;">${{item.unit}}</span></td>
-                <td><b>${{item.title}}</b></td>
+                <td><b>${{item.title}}</b>${{linkBtn}}</td>
                 <td style="text-align:center;"><span class="pill pill-${{item.c1.toLowerCase()}}">${{item.c1}}</span></td>
                 <td style="text-align:center;"><span class="pill pill-${{item.c2.toLowerCase()}}">${{item.c2}}</span></td>
                 <td style="text-align:center;"><span class="pill pill-${{item.c3.toLowerCase()}}">${{item.c3}}</span></td>
