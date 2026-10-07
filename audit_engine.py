@@ -49,6 +49,18 @@ def resolve_link_info(file_matched):
             web_url = f"https://github.com/laisiff-dev/REGULATION-FUYIN-CHECK/raw/main/{rel_path}"
     return rel_path, web_url
 
+def clean_unit_name(folder_name):
+    clean = re.sub(r'^\d+[\._]', '', folder_name).strip()
+    return clean if clean else folder_name
+
+def get_unit_from_path(rel_path):
+    parts = str(rel_path).replace('\\', '/').split('/')
+    if len(parts) > 1:
+        leaf = parts[-2]
+        if leaf and leaf != '輔英科大各單位法規彙整':
+            return clean_unit_name(leaf)
+    return '校級通用'
+
 
 OUTDATED_KEYWORDS = {
     '科技部': '國家科學及技術委員會(國科會)',
@@ -599,40 +611,66 @@ def run_compliance_audit():
                 unit_stats[sheet_name]['c5_v'] += 1
 
     # -------------------------------------------------------------
-    # 補全掃眠「法規彙整索引.json」中尚未於 Excel 列出之學術單位法規
+    # 補全掃瞄「輔英科大各單位法規彙整」中尚未於 Excel 列出之全校行政與學術學院系所法規
     # -------------------------------------------------------------
     audited_matched_paths = set()
     for item in audit_db:
         if item.get('file_matched'):
-            audited_matched_paths.add(os.path.abspath(item['file_matched']))
+            audited_matched_paths.add(os.path.abspath(os.path.join(BASE_DIR, item['file_matched'])))
+        if item.get('rel_path'):
+            audited_matched_paths.add(os.path.abspath(os.path.join(BASE_DIR, item['rel_path'])))
 
+    index_lookup = {}
     if os.path.exists(INDEX_JSON_PATH):
         with open(INDEX_JSON_PATH, 'r', encoding='utf-8') as f:
             all_indexed = json.load(f)
-
         for item in all_indexed:
-            rel_path = item.get('存放路徑', '')
-            abs_path = os.path.join(REG_ARCHIVE_DIR, rel_path)
-            if os.path.exists(abs_path) and os.path.abspath(abs_path) not in audited_matched_paths:
-                audited_matched_paths.add(os.path.abspath(abs_path))
-                reg_name_str = item.get('法規名稱', '')
-                unit_name = item.get('維護單位', '學術單位')
-                category = item.get('法規分類', '單位規章')
-                
+            rel_p = item.get('相對路徑') or item.get('存放路徑') or ''
+            if rel_p:
+                norm_rel = rel_p.replace('\\', '/').lower()
+                index_lookup[norm_rel] = item
+                fname = os.path.basename(rel_p).lower()
+                index_lookup[fname] = item
+
+    for root, dirs, files in os.walk(REG_ARCHIVE_DIR):
+        for f in files:
+            if f.endswith(('.pdf', '.docx', '.doc')) and not f.startswith('~$'):
+                abs_path = os.path.join(root, f)
+                norm_abs = os.path.abspath(abs_path)
+                if norm_abs in audited_matched_paths:
+                    continue
+                audited_matched_paths.add(norm_abs)
+
+                rel_archive = os.path.relpath(abs_path, REG_ARCHIVE_DIR).replace('\\', '/')
+                unit_name = get_unit_from_path(rel_archive)
+
+                fname_lower = f.lower()
+                idx_item = index_lookup.get(rel_archive.lower()) or index_lookup.get(fname_lower)
+
+                if idx_item and idx_item.get('法規名稱'):
+                    reg_name_str = idx_item['法規名稱']
+                else:
+                    stem = os.path.splitext(f)[0]
+                    reg_name_str = re.sub(r'_law\d+$', '', stem, flags=re.I)
+                    reg_name_str = re.sub(r'^\d+[\._]', '', reg_name_str).strip()
+
+                category = (idx_item.get('法規分類') if idx_item else None) or ('系所規章' if '系' in unit_name or '學院' in unit_name else '行政規章')
+                if not category: category = '系所規章' if '系' in unit_name or '學院' in unit_name else '行政規章'
+
                 doc_info = None
                 if abs_path.lower().endswith('.docx'):
                     try:
                         doc_info = parse_docx(abs_path)
                         doc_info['file_matched'] = abs_path
                         doc_info['file_type'] = 'DOCX'
-                    except Exception as e:
+                    except Exception:
                         pass
                 elif abs_path.lower().endswith('.pdf'):
                     try:
                         doc_info = parse_pdf(abs_path)
                         doc_info['file_matched'] = abs_path
                         doc_info['file_type'] = 'PDF'
-                    except Exception as e:
+                    except Exception:
                         pass
                 
                 last_date_str = None
@@ -640,8 +678,8 @@ def run_compliance_audit():
                 if doc_info and doc_info.get('last_date_str'):
                     last_date_str = doc_info['last_date_str']
                     last_year = doc_info['last_year']
-                elif item.get('最後修訂(民國)'):
-                    last_date_str = item['最後修訂(民國)']
+                elif idx_item and idx_item.get('最後修訂(民國)'):
+                    last_date_str = idx_item['最後修訂(民國)']
                     m = re.match(r'(\d+)', str(last_date_str))
                     if m:
                         last_year = int(m.group(1))
