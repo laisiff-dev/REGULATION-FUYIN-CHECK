@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.ds_store
+Thumbs.db
+.vscode/
+.idea/
+
+# 法規目錄頁快取（fetch_fy_regulations.py）
+.cache/
+scratch/
