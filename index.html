@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     
     <style>
         :root {
@@ -1012,8 +1013,8 @@
                 <div class="dropzone" id="dropzone" onclick="document.getElementById('file-input').click()">
                     <i class="fa-solid fa-file-arrow-up"></i>
                     <p>點擊此處或拖曳法規檔案至此處</p>
-                    <span>支援 Word (.docx) 及 Excel (.xlsx) 格式，系統將自動解析文字標籤與版本修訂</span>
-                    <input type="file" id="file-input" style="display: none;" multiple accept=".docx,.xlsx" onchange="handleFileUpload(this.files)">
+                    <span>支援 PDF (.pdf)、Word (.docx) 及 Excel (.xlsx) 格式，系統將自動解析文字標籤與版本修訂</span>
+                    <input type="file" id="file-input" style="display: none;" multiple accept=".pdf,.docx,.xlsx" onchange="handleFileUpload(this.files)">
                 </div>
 
                 <div class="detail-row">
@@ -1524,7 +1525,74 @@
                 const file = files[i];
                 const fname = file.name;
 
-                if (fname.endsWith('.docx')) {
+                if (fname.toLowerCase().endsWith('.pdf')) {
+                    let text = '';
+                    let docTitle = fname.replace(/\.pdf$/i, '');
+                    let lastDate = '115.01.01';
+                    let yr = 115;
+                    
+                    try {
+                        const arrayBuffer = await file.arrayBuffer();
+                        if (window.pdfjsLib) {
+                            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+                            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                            let fullText = '';
+                            for (let p = 1; p <= Math.min(pdf.numPages, 5); p++) {
+                                const page = await pdf.getPage(p);
+                                const tokenized = await page.getTextContent();
+                                const pageText = tokenized.items.map(t => t.str).join(' ');
+                                fullText += pageText + '\n';
+                            }
+                            if (fullText.trim()) {
+                                text = fullText;
+                                const lines = fullText.split('\n').map(l => l.trim()).filter(l => l);
+                                if (lines.length > 0 && lines[0].length >= 3) {
+                                    const candidate = lines[0].replace(/^(輔英科技大學|高齡及長期照護事業系|護理系|教務處|學務處|總務處|人事室)\s*/, '').trim();
+                                    if (candidate.length >= 3) {
+                                        docTitle = candidate;
+                                    }
+                                }
+                            }
+                        }
+                    } catch (pdfErr) {
+                        console.warn('PDF parsing fallback to file name:', pdfErr);
+                    }
+
+                    const dateMatch = text.match(/(\d{2,3})[年\.]\s*(\d{1,2})[月\.]\s*(\d{1,2})/) || fname.match(/(\d{2,3})[年\.]\s*(\d{1,2})[月\.]\s*(\d{1,2})/);
+                    if (dateMatch) {
+                        yr = parseInt(dateMatch[1]);
+                        lastDate = `${dateMatch[1]}.${parseInt(dateMatch[2]).toString().padStart(2, '0')}.${parseInt(dateMatch[3]).toString().padStart(2, '0')}`;
+                    }
+
+                    const isOver2Yrs = yr <= 112;
+                    const hasOrg = text.includes('科技部') || text.includes('研發處') || text.includes('電算中心') || fname.includes('科技部');
+
+                    const newItem = {
+                        sheet: targetUnit,
+                        seq: fullData.filter(d => d.sheet === targetUnit).length + 1,
+                        category: '法規',
+                        reg_name: docTitle,
+                        file_matched: fname,
+                        web_url: '',
+                        file_type: 'PDF',
+                        c1: 'V',
+                        c2: 'V',
+                        c3: 'V',
+                        c4: isOver2Yrs ? 'V' : 'X',
+                        c5: hasOrg ? 'V' : 'X',
+                        c6: 'V',
+                        hierarchy_status: '授權健全',
+                        hierarchy_defect_desc: 'PDF 手動上傳解析檔',
+                        suggested_action: '維持現有條文',
+                        unit: targetUnit,
+                        last_date: lastDate,
+                        last_year: yr,
+                        notes: isOver2Yrs ? '已逾2年未修訂(PDF上傳診斷)' : 'PDF 上傳新增',
+                        format_bugs: []
+                    };
+                    fullData.unshift(newItem);
+                    syncItemToBackend(newItem);
+                } else if (fname.toLowerCase().endsWith('.docx')) {
                     const arrayBuffer = await file.arrayBuffer();
                     const result = await mammoth.extractRawText({ arrayBuffer: arrayBuffer });
                     const text = result.value || '';
@@ -1750,13 +1818,39 @@
             setTimeout(() => { toast.style.display = 'none'; }, 3200);
         }
 
+        function setupDropzoneEvents() {
+            const dz = document.getElementById('dropzone');
+            if (dz) {
+                dz.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    dz.style.borderColor = '#38bdf8';
+                    dz.style.background = 'rgba(56, 189, 248, 0.1)';
+                });
+                dz.addEventListener('dragleave', (e) => {
+                    e.preventDefault();
+                    dz.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+                    dz.style.background = 'transparent';
+                });
+                dz.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    dz.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+                    dz.style.background = 'transparent';
+                    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                        handleFileUpload(e.dataTransfer.files);
+                    }
+                });
+            }
+        }
+
         // 頁面載入完成立即執行
         document.addEventListener('DOMContentLoaded', () => {
             fetchAuditData();
+            setupDropzoneEvents();
         });
         // 若 DOM 已載入則直接執行
         if (document.readyState === 'complete' || document.readyState === 'interactive') {
             fetchAuditData();
+            setupDropzoneEvents();
         }
     </script>
 </body>
