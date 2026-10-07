@@ -1147,47 +1147,89 @@
             const subDesc = document.getElementById('stat-unit-subdesc');
             if (subDesc) subDesc.innerText = `涵蓋全校 ${sheets.length} 個行政與學術系所單位`;
 
-            const GROUPS = [
+            const STRUCTURED_GROUPS = [
                 {
-                    label: "🩺 護理學院及所屬專業系所",
-                    keys: ["護理學院", "護理系", "護理系(所、科)", "學士後護理系", "健康事業管理系", "高齡及長期照護事業系", "助產與婦嬰健康照護系"]
+                    label: "🏛️ 行政單位 (一級處室、中心與專門委員會)",
+                    items: [
+                        { name: "董事會", matches: ["董事會"] },
+                        { name: "秘書室 (含校長室)", matches: ["秘書室", "校長室", "公共事務暨校友服務室"] },
+                        { name: "教務處", matches: ["教務處"] },
+                        { name: "學務處", matches: ["學務處", "學生事務處"] },
+                        { name: "總務處", matches: ["總務處"] },
+                        { name: "研發與永續發展處", matches: ["研發與永續發展處", "研發處"] },
+                        { name: "國際暨兩岸事務處", matches: ["國際暨兩岸事務處", "國際處"] },
+                        { name: "圖書暨資訊處", matches: ["圖書暨資訊處", "圖資處"] },
+                        { name: "體育暨健康促進中心", matches: ["體育暨健康促進中心", "健康暨體育發展處"] },
+                        { name: "人事室", matches: ["人事室"] },
+                        { name: "會計室", matches: ["會計室"] },
+                        { name: "稽核室", matches: ["稽核室"] },
+                        { name: "推廣教育中心", matches: ["推廣教育中心"] },
+                        { name: "環境安全衛生中心", matches: ["環境安全衛生中心"] },
+                        { name: "老化及疾病預防研究中心", matches: ["老化及疾病預防研究中心"] },
+                        { name: "校務研究與永續發展中心", matches: ["校務研究與永續發展中心"] },
+                        { name: "共同教育中心", matches: ["共同教育中心"] },
+                        { name: "產學合作暨智財管理委員會", matches: ["產學合作暨智財管理委員會"] },
+                        { name: "學術誠信與研究倫理委員會", matches: ["學術誠信與研究倫理委員會"] },
+                        { name: "附設醫院與幼兒園", matches: ["附設醫院與幼兒園"] }
+                    ]
                 },
                 {
-                    label: "🔬 醫學與健康學院及所屬專業系所",
-                    keys: ["醫學與健康學院", "醫學檢驗生物技術系", "醫學檢驗生物技術系(科)", "物理治療系", "保健營養系", "健康美容系"]
+                    label: "🎓 學術單位 — 🩺 護理學院及對應專業系所",
+                    items: [
+                        { name: "護理學院 (院級規章)", matches: ["護理學院"] },
+                        { name: "└─ 護理系(所、科)", matches: ["護理系"] },
+                        { name: "└─ 學士後護理系", matches: ["學士後護理系"] },
+                        { name: "└─ 助產與婦嬰健康照護系", matches: ["助產與婦嬰健康照護系"] }
+                    ]
                 },
                 {
-                    label: "🌱 環境與生命學院及所屬專業系所",
-                    keys: ["環境與生命學院", "環境工程與科學系", "環境工程與科學系(科)", "職業安全衛生系", "應用化學及材料科學系", "生物科技與綠色產業系", "生物科技系"]
+                    label: "🎓 學術單位 — 🔬 醫學與健康學院及對應專業系所",
+                    items: [
+                        { name: "醫學與健康學院 (院級規章)", matches: ["醫學與健康學院"] },
+                        { name: "└─ 健康事業管理系", matches: ["健康事業管理系"] },
+                        { name: "└─ 高齡及長期照護事業系", matches: ["高齡及長期照護事業系"] },
+                        { name: "└─ 醫學檢驗生物技術系", matches: ["醫學檢驗生物技術系"] },
+                        { name: "└─ 物理治療系", matches: ["物理治療系"] },
+                        { name: "└─ 保健營養系", matches: ["保健營養系"] },
+                        { name: "└─ 健康美容系", matches: ["健康美容系"] }
+                    ]
                 },
                 {
-                    label: "📊 人文與管理學院及所屬專業系所",
-                    keys: ["人文與管理學院", "資訊科技與管理系", "休閒與遊憩事業管理系", "幼兒保育暨產業系", "應用外語系", "應用外語系(科)"]
+                    label: "🎓 學術單位 — 🌱 環境與生命學院及對應專業系所",
+                    items: [
+                        { name: "環境與生命學院 (院級規章)", matches: ["環境與生命學院"] },
+                        { name: "└─ 環境工程與科學系(科)", matches: ["環境工程與科學系"] },
+                        { name: "└─ 職業安全衛生系", matches: ["職業安全衛生系"] },
+                        { name: "└─ 應用化學及材料科學系", matches: ["應用化學及材料科學系"] },
+                        { name: "└─ 生物科技與綠色產業系", matches: ["生物科技與綠色產業系", "生物科技系"] }
+                    ]
                 },
                 {
-                    label: "🏛️ 校長室與行政處室",
-                    keys: ["董事會", "校長室與秘書處", "秘書處", "秘書室", "教務處", "學生事務處", "總務處", "研發與永續發展處", "研發處", "圖書暨資訊處", "國際暨兩岸事務處", "健康暨體育發展處", "人事室", "會計室", "稽核室", "環境安全衛生中心", "推廣教育中心"]
-                },
-                {
-                    label: "💡 研究中心與專門委員會",
-                    keys: ["老化及疾病預防研究中心", "精準健康與環境檢驗中心", "共同教育中心", "產學合作暨智財管理委員會", "學術誠信與研究倫理委員會", "永續發展委員會"]
+                    label: "🎓 學術單位 — 📊 人文與管理學院及對應專業系所",
+                    items: [
+                        { name: "人文與管理學院 (院級規章)", matches: ["人文與管理學院"] },
+                        { name: "└─ 休閒與遊憩事業管理系", matches: ["休閒與遊憩事業管理系"] },
+                        { name: "└─ 幼兒保育暨產業系", matches: ["幼兒保育暨產業系"] },
+                        { name: "└─ 應用外語系(科)", matches: ["應用外語系"] },
+                        { name: "└─ 資訊科技與管理系", matches: ["資訊科技與管理系"] }
+                    ]
                 }
             ];
 
             const assigned = new Set();
 
-            GROUPS.forEach(g => {
-                const groupSheets = sheets.filter(s => g.keys.some(k => s.includes(k) || k.includes(s)));
-                if (groupSheets.length > 0) {
-                    const optgroup = document.createElement('optgroup');
-                    optgroup.label = g.label;
-                    groupSheets.sort((a, b) => a.localeCompare(b, 'zh-Hant')).forEach(s => {
+            STRUCTURED_GROUPS.forEach(g => {
+                const groupElements = [];
+                g.items.forEach(it => {
+                    const matchedSheets = sheets.filter(s => !assigned.has(s) && it.matches.some(m => s.includes(m) || m.includes(s)));
+                    matchedSheets.forEach(s => {
                         assigned.add(s);
+                        const count = fullData.filter(d => d.sheet === s).length;
+                        
                         const opt = document.createElement('option');
                         opt.value = s;
-                        const count = fullData.filter(d => d.sheet === s).length;
-                        opt.innerText = `${s} (${count} 案)`;
-                        optgroup.appendChild(opt);
+                        opt.innerText = `${it.name.startsWith('└─') ? it.name : s} (${count} 案)`;
+                        groupElements.push(opt);
 
                         if (uploadSelect) {
                             const optUp = document.createElement('option');
@@ -1196,6 +1238,12 @@
                             uploadSelect.appendChild(optUp);
                         }
                     });
+                });
+
+                if (groupElements.length > 0) {
+                    const optgroup = document.createElement('optgroup');
+                    optgroup.label = g.label;
+                    groupElements.forEach(opt => optgroup.appendChild(opt));
                     sheetSelect.appendChild(optgroup);
                 }
             });
